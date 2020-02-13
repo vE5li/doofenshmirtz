@@ -42,8 +42,8 @@ module_list {
 
     multiplier {
         registers [ #in0 #in1 out ]
-        name "multiplier_module"
-        source "multiplier.v"
+        name "MultiplierModule"
+        source "multiplier.uni"
     }
 
     inverter {
