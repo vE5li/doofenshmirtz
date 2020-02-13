@@ -1,0 +1,422 @@
+#method {
+
+    register {
+
+        valid_registers [ data memory operant ]
+
+        specification [ [ #single self ]
+
+            @ verify the register count and if no registers are supposed to be added, dont do anything
+            #call           [ #method:register:verify_count ] [ #data register ] [ #scope:self:count ] [ #scope:self:#position:count ]
+            #if             [ #data #zero ] [ #scope:self:count ]
+            #return         [ #scope:self ]
+            #end
+
+            @ make sure that the register type is valid
+            #if             [ #data #not_contains ] [ #method:register:valid_registers ] [ #scope:self:register ]
+            #print_line     [ #root:color:red ] [ #data "\ninvalid register type " ] [ #scope:self:register ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:self:#position:register ]
+            #print_line
+            #error          [ #data "valid register types are data, memory and operant" ]
+            #end
+
+            @ debug message
+            #if             [ #data #true ] [ #root:debug ]
+            #if             [ #data #equals ] [ #scope:self:count ] [ #data 1 ]
+            #call           [ #method:print:debug ] [ #data "adding " ] [ #scope:self:register ] [ #data " register" ]
+            #else
+            #call           [ #method:print:debug ] [ #data "adding " ] [ #scope:self:count ] [ #data " " ] [ #scope:self:register ] [ #data " registers" ]
+            #end
+            #end
+
+            @ add the register type and count to the modules list
+            #keyword        [ #scope:self:register ]
+            #list           [ #last ] [ #scope:self:count ]
+            #insert         [ #build:modules ] [ #data -1 ] [ #last ]
+            #modify         [ #data #build:modules ] [ #last ]
+            #return         [ #scope:self ]
+        ]
+
+        verify_count [ [ #single type ] [ #single count ] [ #single position ]
+
+            @ make sure that scope:self:count is an integer
+            #if             [ #data #not_integer ] [ #scope:count ]
+            #serialize      [ #scope:count ]
+            #print_line     [ #root:color:red ] [ #data "\ninvalid " ] [ #scope:type ] [ #data " count " ] [ #last ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:position ]
+            #print_line
+            #error          [ #scope:type ] [ #data " count may only be an integer" ]
+            #end
+
+            @ make sure that count is not smaller that 0
+            #if             [ #data #smaller ] [ #scope:count ] [ #data 0 ]
+            #print_line     [ #root:color:red ] [ #data "\ninvalid " ] [ #scope:type ] [ #data " count " ] [ #scope:count ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:position ]
+            #print_line
+            #error          [ #scope:type ] [ #data " count may not be less than 0" ]
+            #end
+        ]
+
+        module [ [ #single self ]
+
+            @ verify the module count and if no modules are supposed to be added, dont do anything
+            #call           [ #method:register:verify_count ] [ #data module ] [ #scope:self:count ] [ #scope:self:#position:count ]
+            #if             [ #data #zero ] [ #scope:self:count ]
+            #return         [ #scope:self ]
+            #end
+
+            @ make sure that the module type is valid
+            #if             [ #data #not_present ] [ #root:module_list ] [ #scope:self:module ]
+            #print_line     [ #root:color:red ] [ #data "\ninvalid module " ] [ #scope:self:module ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:self:#position:module ]
+            #print_line
+            #error          [ #scope:self:module ] [ #data " is not a registered module" ]
+            #end
+
+            @ debug message
+            #if             [ #data #true ] [ #root:debug ]
+            #if             [ #data #equals ] [ #scope:self:count ] [ #data 1 ]
+            #call           [ #method:print:debug ] [ #data "adding " ] [ #scope:self:module ] [ #data " module" ]
+            #else
+            #call           [ #method:print:debug ] [ #data "adding " ] [ #scope:self:count ] [ #data " " ] [ #scope:self:module ] [ #data " modules" ]
+            #end
+            #end
+
+            @ add the module type and count to the modules list
+            #list           [ #scope:self:module ] [ #scope:self:count ] [ #scope:self:#position:module ]
+            #insert         [ #build:modules ] [ #data -1 ] [ #last ]
+            #modify         [ #data #build:modules ] [ #last ]
+            #return         [ #scope:self ]
+        ]
+
+        core_section [ [ #single self ] [ #single ]
+
+            @ debug message
+            #if             [ #data #true ] [ #root:debug ]
+            #call           [ #method:print:debug ] [ #data "registering " ] [ #root:color:magenta ] [ #data "core section" ]  [ #root:color:none ]
+            #end
+
+            @ make sure that the core section is unique
+            #if             [ #data #present ] [ #build ] [ #data core_position ]
+            #print_line     [ #root:color:red ] [ #data "\nprevious core section" ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #build:core_position ]
+            #print_line     [ #root:color:red ] [ #data "\nredefined here" ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:self:#position:identifier ]
+            #print_line
+            #error          [ #data "core section may only be present once" ]
+            #end
+
+            @ save the section position for error messages
+            #insert         [ #build ] [ #data core_position ] [ #scope:self:#position:identifier ]
+            #modify         [ #data #build ] [ #last ]
+
+            @ pass specifications and return
+            #pass           [ #scope:self:specifications ]
+            #return         [ #scope:self ]
+        ]
+
+        validate_type [ [ #single instance ] [ #single name ] [ #single type ] [ #single label ]
+
+            @ if label is false, make sure that the value is not coming from a label
+            #if             [ #data #false ] [ #scope:label ]
+            #if             [ #data #not_present ] [ #scope:instance ] [ #data value ]
+            #print_line     [ #root:color:red ] [ #data "\ninvalid cast" ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:instance:#position:identifier ]
+            #print_line
+            #error          [ #scope:name ] [ #data " may not take a value from a label" ]
+            #end
+
+            @ if label is true and there is no value, value comes from a label
+            #else           [ #data #not_present ] [ #scope:instance ] [ #data value ]
+            #terminate
+            #end
+
+            @ make sure the data type matches the type of the value
+            #keyword        [ #data not_ ] [ #scope:type ]
+            #if             [ #last ] [ #scope:instance:value ]
+            #print_line     [ #root:color:red ] [ #data "\nmismatched data types" ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:instance:#position:value ]
+            #print_line
+            #error          [ #scope:name ] [ #data " may only take a value of type " ] [ #scope:type ]
+            #end
+        ]
+
+        instance [ [ #single self ] [ #single ] [ #single ]
+
+            @ space
+            #if             [ #data #equals ] [ #scope:self:type ] [ #data space ]
+            #call           [ #method:register:validate_type ] [ #scope:self ] [ #data space ] [ #data integer ] [ #data !false ]
+            #return         [ #scope:self:value ]
+
+            @ string
+            #else           [ #data #equals ] [ #scope:self:type ] [ #data string ]
+            #call           [ #method:register:validate_type ] [ #scope:self ] [ #data string ] [ #data string ] [ #data !false ]
+            #length         [ #scope:self:value ]
+            #return         [ #last ]
+
+            @ character
+            #else           [ #data #equals ] [ #scope:self:type ] [ #data character ]
+            #call           [ #method:register:validate_type ] [ #scope:self ] [ #data character ] [ #data character ] [ #data !false ]
+            #return         [ #data 1 ]
+
+            @ integer
+            #else           [ #data #equals ] [ #scope:self:type ] [ #data integer ]
+            #call           [ #method:register:validate_type ] [ #scope:self ] [ #data integer ] [ #data integer ] [ #data !true ]
+            #return         [ #data 1 ]
+
+            @ float
+            #else           [ #data #equals ] [ #scope:self:type ] [ #data float ]
+            #call           [ #method:register:validate_type ] [ #scope:self ] [ #data float ] [ #data float ] [ #data !false ]
+            #return         [ #data 1 ]
+
+            @ invalid data type
+            #else
+            #print_line     [ #root:color:red ] [ #data "\ninvalid data type " ] [ #scope:self:type ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:self:#position:type ]
+            #print_line
+            #error          [ #data "valid data types are string, character, integer, float and space" ]
+            #end
+        ]
+
+        instruction [ [ #single self ] [ #single ] [ #single ]
+            #return         [ #data 1 ]
+        ]
+
+        label [ [ #single self ] [ #single index ] [ #single offset ]
+
+            @ label
+            #if             [ #data #present ] [ #scope:self ] [ #data name ]
+
+            @ make sure that label is unique
+            #if             [ #data #present ] [ #build:labels ] [ #scope:self:name ]
+            #print_line     [ #root:color:red ] [ #data "\nprevious definition of label " ] [ #scope:self:name ] [ #root:color:none ]
+            #index          [ #build:labels ] [ #scope:self:name ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #last:4 ]
+            #print_line     [ #root:color:red ] [ #data "\nredefined here" ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:self:#position:name ]
+            #print_line
+            #error          [ #data "label " ] [ #scope:self:name ] [ #data " may only be defined once" ]
+            #end
+
+            @ create entry for label and add it to #build:labels
+            #list           [ #scope:index ] [ #scope:offset ] [ #data {} ] [ #scope:self:#position:name ]
+            #insert         [ #build:labels ] [ #scope:self:name ] [ #last ]
+            #modify         [ #data #build:labels ] [ #last ]
+            #modify         [ #data #build:active_label ] [ #scope:self:name ]
+
+            @ sublabel
+            #else
+
+            @ make sure there is a label before the sublabel
+            #if             [ #data #equals ] [ #build:active_label ] [ #data none ]
+            #print_line     [ #root:color:red ] [ #data "\ninvalid sublabel " ] [ #scope:self:identifier ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:self:#position:identifier ]
+            #print_line
+            #error          [ #data "sublabels may only be used after a label" ]
+            #end
+
+            @ get the sublabel entry of the active label
+            #path           [ #data #build:labels ] [ #build:active_label ] [ #data 3 ]
+            #set            [ #data path ] [ #last ]
+            #resolve        [ #scope:path ]
+            #set            [ #data entry ] [ #last ]
+
+            @ make sure that sublabel is unique
+            #if             [ #data #present ] [ #last ] [ #scope:self:identifier ]
+            #print_line     [ #root:color:red ] [ #data "\nprevious definition of sublabel " ] [ #scope:self:identifier ] [ #root:color:none ]
+            #index          [ #scope:entry ] [ #scope:self:identifier ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #last:2 ]
+            #print_line     [ #root:color:red ] [ #data "\nredefined here" ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:self:#position:identifier ]
+            #print_line
+            #error          [ #data "sublabels may only be used once per label" ]
+            #end
+
+            @ create entry for sublabel and add it to the entry of the active label
+            #list           [ #scope:offset ] [ #scope:self:#position:identifier ]
+            #insert         [ #scope:entry ] [ #scope:self:identifier ] [ #last ]
+            #modify         [ #scope:path ] [ #last ]
+            #end
+            #return         [ #data 0 ]
+        ]
+
+        block [ [ #single self ] [ #single index ] [ #single offset ]
+            #pass           [ #scope:self:data ] [ #scope:index ] [ #scope:offset ]
+            #return         [ #last ]
+        ]
+
+        section [ [ #single self ] [ #single index ] [ #single type ]
+
+            @ debug message
+            #if             [ #data #true ] [ #root:debug ]
+            #if             [ #data #present ] [ #scope:self ] [ #data identifier ]
+            #call           [ #method:print:debug ] [ #data "registering " ] [ #root:color:magenta ] [ #scope:type ] [ #data " section" ] [ #root:color:none ] [ #data " with name " ] [ #root:color:magenta ] [ #scope:self:identifier ] [ #root:color:none ]
+            #else
+            #call           [ #method:print:debug ] [ #data "registering " ] [ #root:color:magenta ] [ #scope:type ] [ #data " section" ] [ #root:color:none ] [ #data " without name" ]
+            #end
+            #end
+
+            @ set the active label to none and get the section path for the passed type
+            #modify         [ #data #build:active_label ] [ #data none ]
+            #identifier     [ #scope:type ] [ #data _sections ]
+            #path           [ #data #build ] [ #last ]
+            #set            [ #data path ] [ #last ]
+
+            @
+            #if             [ #data #present ] [ #scope:self ] [ #data blocks ]
+            #set            [ #data offset ] [ #data 0 ]
+            #iterate        [ #scope:self:blocks ]
+            #pass           [ #last:instance:part ] [ #scope:index ] [ #scope:offset ]
+            #add            [ #scope:offset ] [ #last ]
+            #set            [ #data offset ] [ #last ]
+            #end
+            #else
+            #set            [ #data offset ] [ #data 0 ]
+            #end
+            #insert         [ #scope:self ] [ #data size ] [ #scope:offset ]
+            #modify         [ #data #scope:self ] [ #last ]
+
+            @
+            #if             [ #data #present ] [ #scope:self ] [ #data identifier ]
+            #set            [ #data identifier ] [ #scope:self:identifier ]
+            #else
+            #set            [ #data identifier ] [ #data #default ]
+            #end
+
+            @
+            #list           [ #scope:identifier ] [ #scope:index ]
+            #set            [ #data entry ] [ #last ]
+
+            @
+            #resolve        [ #scope:path ]
+            #insert         [ #last ] [ #data -1 ] [ #scope:entry ]
+            #modify         [ #scope:path ] [ #last ]
+            #return         [ #scope:self ]
+        ]
+
+        code_section [ [ #single self ] [ #single index ]
+            #call           [ #method:register:section ] [ #scope:self ] [ #scope:index ] [ #data code ]
+            #return         [ #last ]
+        ]
+
+        memory_section [ [ #single self ] [ #single index ]
+            #call           [ #method:register:section ] [ #scope:self ] [ #scope:index ] [ #data memory ]
+            #return         [ #last ]
+        ]
+
+        define_section [ [ #single self ] [ #single ]
+            #return         [ #scope:self ]
+        ]
+
+        chunk_piece [ [ #single self ] [ #single entry ]
+
+            @
+            #if             [ #data #present ] [ #scope:self ] [ #data identifier ]
+            #list           [ #scope:self:identifier ] [ #scope:self:#position:identifier ]
+            #insert         [ #scope:entry ] [ #data -1 ] [ #last ]
+            #return         [ #last ]
+            #else           [ #data #present ] [ #scope:self ] [ #data offset ]
+            #list           [ #scope:self:offset ] [ #scope:self:#position:offset ]
+            #insert         [ #scope:entry ] [ #data -1 ] [ #last ]
+            #return         [ #last ]
+            #end
+        ]
+
+        chunk [ [ #single self ] [ #single chunks ]
+
+            @
+            #if             [ #data #present ] [  #scope:self ] [ #data base ]
+            #list           [ #scope:self:base ] [ #scope:self:#position:base ]
+            #list           [ #last ]
+            #set            [ #data entry ] [ #last ]
+            #else
+            #set            [ #data entry ] [ #data [] ]
+            #end
+
+            @
+            #iterate        [ #scope:self:pieces ]
+            #pass           [ #last:instance ] [ #scope:entry ]
+            #set            [ #data entry ] [ #last:part ]
+            #end
+
+            @
+            #insert         [ #scope:chunks ] [ #data -1 ] [ #scope:entry ]
+            #return         [ #last ]
+
+        ]
+
+        map [ [ #single type ] [ #single map ]
+
+            @
+            #identifier     [ #scope:type ] [ #data _map ]
+            #set            [ #data index ] [ #last ]
+
+            @ make sure that the sections are not already mapped
+            #if             [ #data #present ] [ #build ] [ #scope:index ]
+            #print_line     [ #root:color:red ] [ #data "\nprevious " ] [ #scope:type ] [ #data " map" ] [ #root:color:none ]
+            #index          [ #build ] [ #scope:index ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #last:position ]
+            #print_line     [ #root:color:red ] [ #data "\nredefined here" ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:map:#position:identifier ]
+            #print_line
+            #error          [ #scope:type ] [ #data " sections may only be mapped once" ]
+            #end
+
+            @
+            #if             [ #data #true ] [ #root:debug ]
+            #call           [ #method:print:debug ] [ #data "registering " ] [ #root:color:magenta ] [ #scope:type ] [ #data " map" ]  [ #root:color:none ]
+            #end
+
+            @
+            #set            [ #data chunks ] [ #data [] ]
+            #iterate        [ #scope:map:chunks ]
+            #pass           [ #last:instance:part ] [ #scope:chunks ]
+            #set            [ #data chunks ] [ #last ]
+            #end
+
+            @
+            #map            [ #data chunks ] [ #scope:chunks ] [ #data position ] [ #scope:map:#position:identifier ]
+            #insert         [ #build ] [ #scope:index ] [ #last ]
+            #modify         [ #data #build ] [ #last ]
+        ]
+
+        code_map [ [ #single self ] [ #single ]
+            #call           [ #method:register:map ] [ #data code ] [ #scope:self ]
+            #return         [ #scope:self ]
+        ]
+
+        memory_map [ [ #single self ] [ #single ]
+            #call           [ #method:register:map ] [ #data memory ] [ #scope:self ]
+            #return         [ #scope:self ]
+        ]
+
+        top [ [ #single self ]
+
+            @ debug message
+            #if             [ #data #true ] [ #root:debug ]
+            #call           [ #method:print_pass ] [ #data "register" ]
+            #end
+
+            @ create maps for pass
+            #insert         [ #build ] [ #data modules ] [ #data [] ]
+            #insert         [ #last ] [ #data active_label ] [ #data none ]
+            #modify         [ #data #build ] [ #last ]
+
+            @ if present, pass sections
+            #if             [ #data #present ] [ #scope:self ] [ #data sections ]
+            #iterate        [ #scope:self:sections ]
+            #set            [ #data iterator ] [ #last ]
+            #pass           [ #scope:iterator:instance ] [ #scope:iterator:selector ]
+            #overwrite      [ #scope:self:sections ] [ #scope:iterator:selector ] [ #last ]
+            #modify         [ #data #scope:self:sections ] [ #last ]
+            #end
+            #end
+
+            @ make sure that the core is defined
+            #if             [ #data #not_present ] [ #build ] [ #data core_position ]
+            #error          [ #data "no core specified" ]
+            #end
+            #return         [ #scope:self ]
+        ]
+    }
+}

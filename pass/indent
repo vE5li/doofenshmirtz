@@ -1,0 +1,361 @@
+#method {
+
+    indent {
+
+        valid_methods [ string float integer character length add subtract multiply divide modulo logarithm power square_root negate absolute ceiling floor round sine cosine tangent not and or xor shift_left shift_right empty flip uppercase lowercase read_file ]
+
+        resolved [ [ #single directive ] [ #single checking ] [ #single position ]
+
+            @ ensure that the directive exists and is not already being resolved
+            #if             [ #data #not_present ] [ #build:directives ] [ #scope:directive ]
+            #print_line     [ #root:color:red ] [ #data "\ninvalid directive " ] [ #scope:directive ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:position ]
+            #print_line
+            #error          [ #scope:directive ] [ #data " is not a valid directive" ]
+            #end
+
+            @ make sure that the directive is not defined by itself
+            #if             [ #data #contains ] [ #scope:checking ] [ #scope:directive ]
+            #print_line     [ #root:color:red ] [ #data "\nlooped directive " ] [ #scope:directive ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:position ]
+            #print_line
+            #error          [ #data "directives may not be defined by itself" ]
+            #end
+
+            @ get the directives entry and check if its already resolved
+            #index          [ #build:directives ] [ #scope:directive ]
+            #set            [ #data entry ] [ #last ]
+            #if             [ #data #map ] [ #scope:entry:1 ]
+
+            @ resolve the entry, overwrite its previous value and return it
+            #insert         [ #scope:checking ] [ #data -1 ] [ #scope:directive ]
+            #pass           [ #scope:entry ] [ #last ]
+            #set            [ #data entry ] [ #last ]
+            #overwrite      [ #build:directives ] [ #scope:directive ] [ #scope:entry ]
+            #modify         [ #data #build:directives ] [ #last ]
+
+            @ debug message
+            #if             [ #data #true ] [ #root:debug ]
+            #serialize      [ #scope:entry:1 ]
+            #call           [ #method:print:debug ] [ #data "directive " ] [ #root:color:magenta ] [ #scope:directive ] [ #root:color:none ] [ #data " set to " ] [ #root:color:magenta ] [ #last ] [ #root:color:none ]
+            #end
+
+            @ return newly resolved value
+            #return         [ #scope:entry:1 ]
+            #end
+
+            @ already resolved, return current value
+            #return         [ #scope:entry:1 ]
+        ]
+
+        directive [ [ #single self ] [ #single checking ]
+            #call           [ #method:indent:resolved ] [ #scope:self:directive ] [ #scope:checking ] [ #scope:self:#position:directive ]
+            #return         [ #last ]
+        ]
+
+        define_block [ [ #single self ] [ #single ]
+            #return         [ #scope:self ]
+        ]
+
+        condition [ [ #single self ] [ #single checking ]
+
+            @ pass the condition value and ensure its a boolean
+            #pass           [ #scope:self:condition ] [ #scope:checking ]
+            #set            [ #data condition ] [ #last ]
+
+            @ make sure that the condition is a boolean
+            #if             [ #data #not_boolean ] [ #scope:condition ]
+            #type           [ #scope:condition ]
+            #print_line     [ #root:color:red ] [ #data "\nunexpected " ] [ #last ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:self:#position:condition ]
+            #print_line
+            #error          [ #data "condition may only be a boolean" ]
+            #end
+
+            @ if its true, pass the left value and return it
+            #if             [ #data #true ] [ #scope:condition ]
+            #pass           [ #scope:self:true ] [ #scope:checking ]
+            #return         [ #last ]
+
+            @ if its false, pass the right value and return it
+            #else
+            #pass           [ #scope:self:false ] [ #scope:checking ]
+            #return         [ #last ]
+            #end
+        ]
+
+        calculate_total [ [ #single source ]
+
+            @ if source is a number, return it right away. otherwise ensure its a list
+            #if             [ #data #number ] [ #scope:source:1 ]
+            #return         [ #scope:source:1 ]
+            #else           [ #data #not_list ] [ #scope:source:1 ]
+            #type           [ #scope:source:1 ]
+            #print_line     [ #root:color:red ] [ #data "\nunexpected " ] [ #last ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:source:2 ]
+            #print_line
+            #error          [ #data "only numbers and characters may be part of an equasion" ]
+            #end
+
+            @ get the final left and right values
+            #call           [ #method:indent:calculate_total ] [ #scope:source:1 ]
+            #set            [ #data left ] [ #last ]
+            #call           [ #method:indent:calculate_total ] [ #scope:source:3 ]
+            #set            [ #data right ] [ #last ]
+
+            @ invoke a math method set by the operator
+            #list           [ #scope:left ] [ #scope:right ]
+            #set            [ #data parameters ] [ #last ]
+            #keyword        [ #scope:source:2 ]
+            #invoke         [ #last ] [ #scope:parameters ]
+            #return         [ #last ]
+        ]
+
+        calculate_condition [ [ #single source ]
+
+            @ if source is not a list, return it right away
+            #if             [ #data #not_list ] [ #scope:source:1 ]
+            #return         [ #scope:source:1 ]
+            #end
+
+            @ get the final left and right values
+            #call           [ #method:indent:calculate_condition ] [ #scope:source:1 ]
+            #set            [ #data left ] [ #last ]
+            #call           [ #method:indent:calculate_condition ] [ #scope:source:3 ]
+            #set            [ #data right ] [ #last ]
+
+            @ check if its a logical operator
+            #if             [ #data #contains ] [ #scope:source:2 ] [ #data logical_ ]
+            #split          [ #scope:source:2 ] [ #data '_' ] [ #data !true ]
+            #keyword        [ #last:2 ]
+            #set            [ #data instruction ] [ #last ]
+
+            @ ensure both values are booleans
+            #if             [ #data #not_boolean ] [ #scope:left ]
+            #call           [ #method:indent:boolean_error ] [ #scope:left ] [ #scope:source:1:2 ]
+            #end
+            #if             [ #data #not_boolean ] [ #scope:right ]
+            #call           [ #method:indent:boolean_error ] [ #scope:right ] [ #scope:source:3:2 ]
+            #end
+
+            @ invoke a math method set by the operator
+            #list           [ #scope:left ] [ #scope:right ]
+            #invoke         [ #scope:instruction ] [ #last ]
+            #return         [ #last ]
+
+            @ check the relation between the left and right values
+            #else
+            #keyword        [ #scope:source:2 ]
+            #boolean        [ #last ] [ #scope:left ] [ #scope:right ]
+            #return         [ #last ]
+            #end
+        ]
+
+        pull [ [ #single source ] [ #single operators ]
+
+            @ iterate all items
+            #set            [ #data index ] [ #data 2 ]
+            #while          [ #data #smaller ] [ #scope:index ] [ #scope:source ]
+
+            @ if the source has a length of 3, pull is done
+            #length         [ #scope:source ]
+            #if             [ #data #equals ] [ #last ] [ #data 3 ]
+            #return         [ #scope:source ]
+            #end
+
+            @ check if the current item is one of the provided operators
+            #index          [ #scope:source ] [ #scope:index ]
+            #if             [ #data #contains ] [ #scope:operators ] [ #last ]
+
+            @ get the value to the left of the operator and safe its index for inserting the new list
+            #subtract       [ #scope:index ] [ #data 1 ]
+            #set            [ #data replace ] [ #last ]
+            #index          [ #scope:source ] [ #last ]
+            #set            [ #data left ] [ #last ]
+
+            @ get the value to the right of the operator
+            #add            [ #scope:index ] [ #data 1 ]
+            #index          [ #scope:source ] [ #last ]
+            #set            [ #data right ] [ #last ]
+
+            @ insert the new list into source and remove the two following items
+            #index          [ #scope:source ] [ #scope:index ]
+            #list           [ #scope:left ] [ #last ] [ #scope:right ]
+            #overwrite      [ #scope:source ] [ #scope:replace ] [ #last ]
+            #remove         [ #last ] [ #scope:index ]
+            #remove         [ #last ] [ #scope:index ]
+            #set            [ #data source ] [ #last ]
+
+            @ if the operator is not found, check the next item
+            #else
+            #add            [ #scope:index ] [ #data 1 ]
+            #set            [ #data index ] [ #last ]
+            #end
+            #end
+            #return         [ #scope:source ]
+        ]
+
+        combine_equasion [ [ #single pieces ] [ #single checking ] @ TODO: better comments
+
+            @ iterate the pieces
+            #set            [ #data combined ] [ #data [] ]
+            #iterate        [ #scope:pieces ]
+            #set            [ #data iterator ] [ #last ]
+
+            @ pass the part and add the value and position to the combined list
+            #pass           [ #scope:iterator:instance:part ] [ #scope:checking ]
+            #list           [ #last ] [ #scope:iterator:instance:position:part ]
+            #insert         [ #scope:combined ] [ #data -1 ] [ #last ]
+            #set            [ #data combined ] [ #last ]
+
+            @ if there is an operator following, add it to the combined list aswell
+            #if             [ #data #present ] [ #scope:iterator:instance ] [ #data seperator ]
+            #insert         [ #scope:combined ] [ #data -1 ] [ #scope:iterator:instance:seperator:operator ]
+            #set            [ #data combined ] [ #last ]
+
+            @ return combined list
+            #end
+            #end
+            #return         [ #scope:combined ]
+        ]
+
+        boolean_error [ [ #single instance ] [ #single position ]
+            #type           [ #scope:instance ]
+            #print_line     [ #root:color:red ] [ #data "\nunexpected " ] [ #last ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:position ]
+            #print_line
+            #error          [ #data "logical operators may only operate on booleans" ]
+        ]
+
+        equasion [ [ #single self ] [ #single checking ]
+
+            @ put all values and operators into a single list
+            #call           [ #method:indent:combine_equasion ] [ #scope:self:pieces ] [ #scope:checking ]
+
+            @ put the operators and values into individual lists so they reolve in the correct order
+            #call           [ #method:indent:pull ] [ #last ] [ #data [ multiply divide remainder ] ]
+            #call           [ #method:indent:pull ] [ #last ] [ #data [ add subtract ] ]
+            #call           [ #method:indent:pull ] [ #last ] [ #data [ shift_left shift_right ] ]
+            #call           [ #method:indent:pull ] [ #last ] [ #data [ and ] ]
+            #call           [ #method:indent:pull ] [ #last ] [ #data [ xor ] ]
+            #call           [ #method:indent:pull ] [ #last ] [ #data [ or ] ]
+
+            @ resolve the equasion
+            #call           [ #method:indent:calculate_total ] [ #last ]
+            #return         [ #last ]
+        ]
+
+        logical_equasion [ [ #single self ] [ #single checking ]
+
+            @ put all values and operators into a single list
+            #call           [ #method:indent:combine_equasion ] [ #scope:self:pieces ] [ #scope:checking ]
+
+            @ put the operators and values into individual lists so they reolve in the correct order
+            #call           [ #method:indent:pull ] [ #last ] [ #data [ bigger smaller not_smaller not_bigger ] ]
+            #call           [ #method:indent:pull ] [ #last ] [ #data [ equals not_equals ] ]
+            #call           [ #method:indent:pull ] [ #last ] [ #data [ logical_and ] ]
+            #call           [ #method:indent:pull ] [ #last ] [ #data [ logical_xor ] ]
+            #call           [ #method:indent:pull ] [ #last ] [ #data [ logical_or ] ]
+
+            @ resolve the equasion
+            #call           [ #method:indent:calculate_condition ] [ #last ]
+            #return         [ #last ]
+        ]
+
+        concatinate [ [ #single self ] [ #single checking ]
+            #set            [ #data string ] [ #data "" ]
+            #iterate        [ #scope:self:concatinate ]
+            #pass           [ #last:instance:part ] [ #scope:checking ]
+            #string         [ #scope:string ] [ #last ]
+            #set            [ #data string ] [ #last ]
+            #end
+            #return         [ #scope:string ]
+        ]
+
+        collect [ [ #single parameters ]
+            #set            [ #data new ] [ #data [] ]
+            #iterate        [ #scope:parameters ]
+            #insert         [ #scope:new ] [ #data -1 ] [ #last:instance:part ]
+            #set            [ #data new ] [ #last ]
+            #end
+            #return         [ #scope:new ]
+        ]
+
+        method [ [ #single identifier ] [ #single parameters ] [ #single position ]
+
+            @ make sure the invoked method is valid
+            #if             [ #data #not_contains ] [ #method:indent:valid_methods ] [ #scope:identifier ]
+            #print_line     [ #root:color:red ] [ #data "\ninvalid method " ] [ #scope:identifier ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:position ]
+            #print_line
+            #error          [ #scope:identifier ] [ #data " is not a valid compiler method" ]
+            #end
+
+            @ invoke the specified compiler method
+            #keyword        [ #scope:identifier ]
+            #invoke         [ #last ] [ #scope:parameters ]
+            #return         [ #last ]
+        ]
+
+        value [ [ #single self ] [ #single checking ]
+
+            @ integer
+            #if             [ #data #present ] [ #scope:self ] [ #data integer ]
+            #return         [ #scope:self:integer ]
+
+            @ string
+            #else           [ #data #present ] [ #scope:self ] [ #data string ]
+            #return         [ #scope:self:string ]
+
+            @ float
+            #else           [ #data #present ] [ #scope:self ] [ #data float ]
+            #return         [ #scope:self:float ]
+
+            @ character
+            #else           [ #data #present ] [ #scope:self ] [ #data character ]
+            #return         [ #scope:self:character ]
+
+            @ negative number
+            #else           [ #data #present ] [ #scope:self ] [ #data negative ]
+            #pass           [ #scope:self:negative ] [ #scope:checking ]
+            @ MAKE SURE THIS IS A NUMBER
+            #negate         [ #last ]
+            #return         [ #last ]
+
+            @ inverted number or boolean
+            #else           [ #data #present ] [ #scope:self ] [ #data inverted ]
+            #pass           [ #scope:self:inverted ] [ #scope:checking ]
+            @ MAKE SURE THIS IS A NUMBER OR BOOLEAN
+            #not            [ #last ]
+            #return         [ #last ]
+
+            @ internal method
+            #else           [ #data #present ] [ #scope:self ] [ #data method ]
+            #pass           [ #scope:self:parameters ] [ #scope:checking ]
+            #call           [ #method:indent:collect ] [ #last ]
+            #call           [ #method:indent:method ] [ #scope:self:method ] [ #last ] [ #scope:self:#position:method ]
+            #return         [ #last ]
+
+            @ entries that resolve themselves
+            #else
+            #pass           [ #scope:self:passed ] [ #scope:checking ]
+            #return         [ #last ]
+            #end
+        ]
+
+        top [ [ #single self ]
+
+            @ if debug is enabled, print the current pass
+            #if             [ #data #true ] [ #root:debug ]
+            #call           [ #method:print_pass ] [ #data "indent" ]
+            #end
+
+            @ if present, pass the sections
+            #if             [ #data #present ] [ #scope:self ] [ #data sections ]
+            #pass           [ #scope:self:sections ] [ #data [] ]
+            #modify         [ #data #scope:self:sections ] [ #last ]
+            #end
+            #return         [ #scope:self ]
+        ]
+    }
+}

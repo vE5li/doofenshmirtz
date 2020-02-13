@@ -1,0 +1,270 @@
+core            [ tokenizer parser builder ]
+
+dependencies    [ format file color debug position ]
+
+pipeline        [ define indent register resolve generate ]
+
+project {
+    name            "h0vs"
+    author          "ve5li"
+    contact         "ve5li@tuta.io"
+}
+
+directory {
+    library         "/home/code/qtc8/library/"
+    core            "/home/code/ktl9/core/"
+    pass            "/home/code/ktl9/pass/"
+    module          "/home/code/ktl9/module/"
+}
+
+#method {
+
+    process_arguments [ [ #single arguments ]
+
+        @ create configuration and index
+        #set            [ #data configuration ] [ #data { files [] debug !false output "output.uni" } ]
+        #length         [ #scope:arguments ]
+        #set            [ #data count ] [ #last ]
+        #set            [ #data index ] [ #data 1 ]
+
+        @ iterate over all arguments and match
+        #while          [ #data #not_bigger ] [ #scope:index ] [ #scope:count ]
+        #index          [ #scope:arguments ] [ #scope:index ]
+
+        @ set output file
+        #else           [ #data #equals ] [ #last ] [ #data "-o" ]
+        #if             [ #data #not_bigger ] [ #scope:count ] [ #scope:index ]
+        #error          [ #data "expected output file" ]
+        #end
+        #if             [ #data #present ] [ #scope ] [ #data output_set ]
+        #error          [ #data "output file may only be spceified once" ]
+        #end
+        #set            [ #data output_set ] [ #data !true ]
+        #add            [ #scope:index ] [ #data 1 ]
+        #set            [ #data index ] [ #last ]
+        #index          [ #scope:arguments ] [ #scope:index ]
+        #modify         [ #data #scope:configuration:output ] [ #last ]
+
+        @ enable debug
+        #else           [ #data #equals ] [ #last ] [ #data "-d" ]
+        #if             [ #data #present ] [ #scope ] [ #data debug_set ]
+        #error          [ #data "debug flag may only be set once" ]
+        #end
+        #set            [ #data debug_set ] [ #data !true ]
+        #modify         [ #data #scope:configuration:debug ] [ #data !true ]
+
+        @ add source file
+        #else
+        #set            [ #data file ] [ #last ]
+        #index          [ #scope:file ] [ #data 1 ]
+        #if             [ #data #equals ] [ #last ] [ #data '-' ]
+        #error          [ #data "invalid flag " ] [ #scope:file ]
+        #end
+        #insert         [ #scope:configuration:files ] [ #data -1 ] [ #scope:file ]
+        #modify         [ #data #scope:configuration:files ] [ #last ]
+        #end
+
+        @ increment argument index
+        #add            [ #scope:index ] [ #data 1 ]
+        #set            [ #data index ] [ #last ]
+
+        @ return configuration
+        #end
+        #return         [ #scope:configuration ]
+    ]
+
+    #main [ [ #list arguments ]
+
+        @ take initial time passed
+        #time
+        #set            [ #data start_time ] [ #last ]
+
+        @ process command line arguments
+        #call           [ #method:process_arguments ] [ #scope:arguments ]
+        #set            [ #data configuration ] [ #last ]
+
+        @ load the compiler core
+        #map            [ #data debug ] [ #scope:configuration:debug ]
+        #set            [ #data compiler ] [ #last ]
+        #iterate        [ #root:core ]
+        #string         [ #root:directory:core ] [ #last:instance ]
+        #read_map       [ #last ]
+        #merge          [ #scope:compiler ] [ #last ]
+        #set            [ #data compiler ] [ #last ]
+        #end
+
+        @ load necessary libraries
+        #iterate        [ #root:dependencies ]
+        #string         [ #root:directory:library ] [ #last:instance ]
+        #read_map       [ #last ]
+        #set            [ #data library ] [ #last ]
+        #merge          [ #root ] [ #scope:library ]
+        #modify         [ #data #root ] [ #last ]
+        #merge          [ #scope:compiler ] [ #scope:library ]
+        #set            [ #data compiler ] [ #last ]
+        #end
+
+        @ ensure that there are files to be compiled
+        #if             [ #data #empty ] [ #scope:configuration:files ]
+        #error          [ #data "no files for compilation provided" ]
+        #end
+
+        @ debug message
+        #if             [ #data #true ] [ #scope:configuration:debug ]
+        #call           [ #method:print:debug ] [ #data "libraries loaded" ]
+        #end
+
+        @
+        #set            [ #data pass_handlers ] [ #data {} ]
+        #iterate        [ #root:pipeline ]
+        #set            [ #data pass ] [ #last:instance ]
+        #path           [ #scope:pass ] [ #data top ]
+        #list           [ #last ]
+        #insert         [ #scope:pass_handlers ] [ #scope:pass ] [ #last ]
+        #set            [ #data pass_handlers ] [ #last ]
+        #end
+
+        @ tokenize and parse all source files
+        #set            [ #data sections ] [ #data [] ]
+        #set            [ #data positions ] [ #data [] ]
+        #iterate        [ #scope:configuration:files ]
+        #compile_file   [ #scope:compiler ] [ #last:instance ]
+        #if             [ #data #present ] [ #last ] [ #data sections ]
+        #set            [ #data build ] [ #last ]
+        #merge          [ #scope:sections ] [ #scope:build:sections ]
+        #set            [ #data sections ] [ #last ]
+        #merge          [ #scope:positions ] [ #scope:build:#position:sections ]
+        #set            [ #data positions ] [ #last ]
+        #end
+        #end
+
+        @
+        #map            [ #data sections ] [ #scope:positions ]
+        #map            [ #data #pass ] [ #scope:pass_handlers ] [ #data #position ] [ #last ] [ #data sections ] [ #scope:sections ]
+        #set            [ #data top ] [ #last ]
+
+        @ debug message
+        #if             [ #data #true ] [ #scope:configuration:debug ]
+        #call           [ #method:print:debug ] [ #data "loading the pipeline" ]
+        #end
+
+        @ load the pipeline and the passes that are going to be used
+        #insert         [ #scope:compiler ] [ #data #pipeline ] [ #root:pipeline ]
+        #set            [ #data compiler ] [ #last ]
+        #iterate        [ #root:pipeline ]
+        #set            [ #data pass ] [ #last:instance ]
+
+        @ debug message
+        #if             [ #data #true ] [ #scope:configuration:debug ]
+        #call           [ #method:format:tag ] [ #root:color:magenta ] [ #data "pass" ]
+        #call           [ #method:print:debug ] [ #last ] [ #data " loading " ] [ #scope:pass ]
+        #end
+
+        @
+        #string         [ #root:directory:pass ] [ #scope:pass ]
+        #read_map       [ #last ]
+        #merge          [ #scope:compiler ] [ #last ]
+        #set            [ #data compiler ] [ #last ]
+        #end
+
+        @ debug message
+        #if             [ #data #true ] [ #scope:configuration:debug ]
+        #call           [ #method:print:debug ] [ #data "loading the module list" ]
+        #end
+
+        @ load the module index and build the parsed files
+        #string         [ #root:directory:module ] [ #data "index" ]
+        #read_map       [ #last ]
+        #merge          [ #scope:compiler ] [ #last ]
+        #insert         [ #last ] [ #data module_directory ] [ #root:directory:module ]
+        #set            [ #data compiler ] [ #last ]
+
+        @ debug message
+        #if             [ #data #true ] [ #scope:configuration:debug ]
+        #call           [ #method:print:debug ] [ #data "building top" ]
+        #end
+
+        @
+        #build          [ #scope:compiler ] [ #scope:top ]
+        #set            [ #data build ] [ #last ]
+
+        @ debug message
+        #if             [ #data #true ] [ #scope:configuration:debug ]
+        #call           [ #method:print:debug ] [ #data "writing code to file " ] [ #root:color:magenta ] [ #scope:configuration:output ] [ #root:color:none ]
+        #end
+        #write_file     [ #scope:configuration:output ] [ #scope:build:code ]
+
+        @ calculate the compilation time
+        #time
+        #subtract       [ #last ] [ #scope:start_time ]
+        #divide         [ #last ] [ #data 1000.0 ]
+        #set            [ #data duration ] [ #last ]
+
+        @ output debug information if the user input is yes
+        #if             [ #data #true ] [ #scope:configuration:debug ]
+        #call           [ #method:format:tag ] [ #root:color:magenta ] [ #data "debug" ]
+        #print          [ #last ] [ #data " print build map? (yes, " ] [ #root:color:magenta ] [ #data "no" ] [ #root:color:none ] [ #data ") " ]
+        #flush
+        #input
+        #if             [ #data #equals ] [ #last ] [ #data "yes" ]
+        #call           [ #method:output_debug ] [ #scope:build ]
+        #end
+        #end
+
+        @ print the compilation time
+        #call           [ #method:print:success ] [ #data "completed in " ] [ #scope:duration ] [ #data "s"]
+    ]
+
+    output_debug [ [ #single build ]
+
+        @ final sections that will be placed in memory
+        #call           [ #method:format:serialize ] [ #scope:build:bytecode ] [ #data "" ]
+        #print_line     [ #root:color:magenta ] [ #data "build:bytecode " ] [ #root:color:none ] [ #last ]
+        #call           [ #method:format:serialize ] [ #scope:build:operants ] [ #data "" ]
+        #print_line     [ #root:color:magenta ] [ #data "build:operants " ] [ #root:color:none ] [ #last ]
+        #call           [ #method:format:serialize ] [ #scope:build:memory ] [ #data "" ]
+        #print_line     [ #root:color:magenta ] [ #data "build:memory " ] [ #root:color:none ] [ #last ]
+
+        @ number of registers instanciated
+        #print_line     [ #root:color:magenta ] [ #data "build:counter:operant " ] [ #root:color:none ] [ #scope:build:counter:operant ]
+        #print_line     [ #root:color:magenta ] [ #data "build:counter:memory " ] [ #root:color:none ] [ #scope:build:counter:memory ]
+        #print_line     [ #root:color:magenta ] [ #data "build:counter:register " ] [ #root:color:none ] [ #scope:build:counter:register ]
+        #print_line     [ #root:color:magenta ] [ #data "build:counter:full_register " ] [ #root:color:none ] [ #scope:build:counter:full_register ]
+
+        @ core modules in the same order that they are in the core
+        #call           [ #method:format:serialize ] [ #scope:build:modules ] [ #data "" ]
+        #print_line     [ #root:color:magenta ] [ #data "build:modules " ] [ #root:color:none ] [ #last ]
+        #call           [ #method:format:serialize ] [ #scope:build:driven ] [ #data "" ]
+        #print_line     [ #root:color:magenta ] [ #data "build:driven " ] [ #root:color:none ] [ #last ]
+
+        @ lookup tables for modules and directives
+        #call           [ #method:format:serialize ] [ #scope:build:module_lookup ] [ #data "" ]
+        #print_line     [ #root:color:magenta ] [ #data "build:module_lookup " ] [ #root:color:none ] [ #last ]
+        #call           [ #method:format:level ] [ #scope:build:directives ] [ #data 80 ]
+        #print_line     [ #root:color:magenta ] [ #data "build:directives " ] [ #root:color:none ] [ #last ]
+
+        @ memory map (if present)
+        #if             [ #data #present ] [ #scope:build ] [ #data memory_map ]
+        #call           [ #method:format:serialize ] [ #scope:build:memory_map ] [ #data "" ]
+        #print_line     [ #root:color:magenta ] [ #data "build:memory_map " ] [ #root:color:none ] [ #last ]
+        #end
+
+        @ code map (if present)
+        #if             [ #data #present ] [ #scope:build ] [ #data code_map ]
+        #call           [ #method:format:serialize ] [ #scope:build:code_map ] [ #data "" ]
+        #print_line     [ #root:color:magenta ] [ #data "build:code_map " ] [ #root:color:none ] [ #last ]
+        #end
+
+        @ sections and section labels
+        #call           [ #method:format:serialize ] [ #scope:build:code_sections ] [ #data "" ]
+        #print_line     [ #root:color:magenta ] [ #data "build:code_sections " ] [ #root:color:none ] [ #last ]
+        #call           [ #method:format:serialize ] [ #scope:build:memory_sections ] [ #data "" ]
+        #print_line     [ #root:color:magenta ] [ #data "build:memory_sections " ] [ #root:color:none ] [ #last ]
+        #call           [ #method:format:serialize ] [ #scope:build:labels ] [ #data "" ]
+        #print_line     [ #root:color:magenta ] [ #data "build:labels " ] [ #root:color:none ] [ #last ]
+
+        @ entire compiler
+        #call           [ #method:format:level ] [ #scope:build ] [ #data 80 ]
+        #print_line     [ #root:color:magenta ] [ #data "build " ] [ #root:color:none ] [ #last ]
+    ]
+}

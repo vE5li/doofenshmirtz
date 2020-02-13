@@ -1,0 +1,65 @@
+component BusRegister(in clock, in bus[#bus_range], in selector[#selector_range(1)], out destination[#bit_range(1)]) {
+    Register buffer := 0
+    Register data := 0
+    destination := data
+
+    on rising clock {
+        if selector != 0 {
+            buffer := bus[#bit_width +:: selector * #bit_width]
+        }
+    }
+
+    on falling clock {
+        data := buffer
+    }
+}
+
+component BufferedBusRegister(in clock, in bus[#bus_range], in selector[#selector_range(1)], out internal[#bit_range(1)], out destination[#bit_range(1)]) {
+    Register buffer := 0
+    Register data := 0
+    internal := buffer
+    destination := data
+
+    on rising clock {
+        if &selector == 0 {
+            buffer := bus[#bit_width +:: selector * #bit_width]
+        }
+    }
+
+    on falling clock {
+        data := buffer
+    }
+}
+
+component InstructionModule(in clock, in bus[#bus_range], in selector[#selector_range(2)], out destination[#bit_range(3)], out program_counter[counter_range]) {
+    Register buffer0 := 0
+    Register buffer1 := 0
+    Register buffer2 := 0
+    destinations[#bits(0)] := data0
+    destinations[#bits(1)] := data1
+    destinations[#bits(2)] := data2
+    program_counter := buffer2
+
+    on falling clock {
+        data0 := buffer0
+        data1 := buffer1
+        data2 := buffer2
+    }
+
+    on rising clock {
+        if &selectors[#bits(0)] == 0 {
+            buffer0 := bus[selectors[#bit_width +:: #bits(0)] * #bit_width]
+        }
+
+        if &selectors[#bits(1)] == 0 {
+            buffer1 := bus[selectors[#bit_width +:: #bits(1)] * #bit_width]
+        }
+
+        if buffer1 != 0 {
+            buffer2 := bufer0
+            buffer1 := 0
+        } else {
+            buffer2 += 1
+        }
+    }
+}

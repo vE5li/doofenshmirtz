@@ -1,0 +1,54 @@
+module_list {
+
+    instruction {
+        registers [ address #jump #condition ]
+        uses [ instruction ]
+        drives [ instruction ]
+        name "InstructionModule"
+        source "register.uni"
+    }
+
+    selector {
+        registers [ #address ]
+        uses [ selector ]
+        drives [ selector ]
+        name "SelectorModule"
+        source "selector.uni"
+    }
+
+    adder {
+        registers [ #in0 #in1 out overflow ]
+        name "AdderModule"
+        source "adder.uni"
+    }
+
+    subtractor {
+        registers [ #in0 #in1 out overflow ]
+        name "SubtractorModule"
+        source "subtractor.uni"
+    }
+
+    comparitor {
+        registers [ #in0 #in1 equal bigger smaller ]
+        name "ComparitorModule"
+        source "comparitor.uni"
+    }
+
+    divider {
+        registers [ #in0 #in1 out remainder ]
+        name "DividerModule"
+        source "divider.uni"
+    }
+
+    multiplier {
+        registers [ #in0 #in1 out ]
+        name "multiplier_module"
+        source "multiplier.v"
+    }
+
+    inverter {
+        registers [ #in out ]
+        name "InverterModule"
+        source "inverter.uni"
+    }
+}

@@ -1,0 +1,286 @@
+#method {
+
+    generate {
+
+        instruction [ [ #single instruction ]
+
+            @
+            #iterate        [ #scope:instruction ]
+            #set            [ #data iterator ] [ #last ]
+
+            @ add noop or source register
+            #if             [ #data #equals ] [ #scope:iterator:instance ] [ #data noop ]
+            #string         [ #data "#instruction_width[!0]" ]
+            #else
+            #string         [ #data "#instruction_width[" ] [ #scope:iterator:instance ] [ #data "]" ] @ CAST TO UNSIGNED INTEGER BEFOREHAND
+            #end
+            #overwrite      [ #scope:instruction ] [ #scope:iterator:selector ] [ #last ]
+            #set            [ #data instruction ] [ #last ]
+            #end
+
+            @
+            #join           [ #scope:instruction ] [ #data ", " ]
+            #return         [ #last ]
+        ]
+
+        operant [ [ #single operant ]
+
+            @
+            #iterate        [ #scope:operant ]
+            #set            [ #data iterator ] [ #last ]
+
+            @ add zero or immediate
+            #if             [ #data #equals ] [ #scope:iterator:instance ] [ #data none ]
+            #string         [ #data "#bit_width[0]" ]
+            #else
+            #string         [ #data "#bit_width[" ] [ #scope:iterator:instance ] [ #data "]" ] @ CAST TO UNSIGNED INTEGER BEFOREHAND
+            #end
+            #overwrite      [ #scope:operant ] [ #scope:iterator:selector ] [ #last ]
+            #set            [ #data operant ] [ #last ]
+            #end
+
+            @
+            #join           [ #scope:operant ] [ #data ", " ]
+            #return         [ #last ]
+        ]
+
+        top [ [ #single self ]
+
+            @ if debug is enabled, print the current pass
+            #if             [ #data #true ] [ #root:debug ]
+            #call           [ #method:print_pass ] [ #data "generate" ]
+            #end
+
+            @ ???????????
+            #set            [ #data synthesise ] [ #data !false ]
+
+            @ calculate some values
+            #length         [ #build:bytecode ]
+            #subtract       [ #last ] [ #data 1 ]
+            #set            [ #data size ] [ #last ]
+            #set            [ #data bit_width ] [ #data 32 ]
+            #multiply       [ #scope:bit_width ] [ #build:counter:operant ]
+            #set            [ #data operant_width ] [ #last ]
+            #multiply       [ #scope:bit_width ] [ #build:counter:register ]
+            #set            [ #data bus_width ] [ #last ]
+            #logarithm      [ #build:counter:register ] [ #data 2 ]
+            #ceiling        [ #last ]
+            #set            [ #data selector_width ] [ #last ]
+            #multiply       [ #scope:selector_width ] [ #build:counter:full_register ]
+            #set            [ #data instruction_width ] [ #last ]
+            #length         [ #build:bytecode ]
+            #logarithm      [ #last ] [ #data 2 ]
+            #ceiling        [ #last ]
+            #set            [ #data counter_width ] [ #last ]
+
+            @ generate code
+            #string         [ #data "define bit_width := " ] [ #scope:bit_width ]
+            #string         [ #last ] [ #data "\ndefine register_count := " ] [ #build:counter:register ]
+            #string         [ #last ] [ #data "\ndefine full_register_count := " ] [ #build:counter:full_register ]
+            #string         [ #last ] [ #data "\ndefine memory_registers := " ] [ #build:counter:memory ]
+            #string         [ #last ] [ #data "\ndefine operant_registers := " ] [ #build:counter:operant ]
+            #string         [ #last ] [ #data "\n\ndefine operant_width := " ] [ #scope:operant_width ]
+            #string         [ #last ] [ #data "\ndefine bus_width := " ] [ #scope:bus_width ]
+            #string         [ #last ] [ #data "\ndefine selector_width := " ] [ #scope:selector_width ]
+            #string         [ #last ] [ #data "\ndefine instruction_width := " ] [ #scope:instruction_width ]
+            #string         [ #last ] [ #data "\ndefine counter_width := " ] [ #scope:counter_width ]
+            #set            [ #data code ] [ #last ]
+
+            @ synthesis directives
+            #if             [ #data #true ] [ #scope:synthesise ]
+            #string         [ #scope:code ] [ #data "`default_nettype none\n" ]
+            #string         [ #last ] [ #data "`timescale 100 ns / 10 ns\n\n" ]
+            #set            [ #data code ] [ #last ]
+            #end
+
+            @ generate top module
+            #string         [ #scope:code ] [ #data "\n\ncomponent Top(in clock) {\n" ]
+            #string         [ #last ] [ #data "    Register instruction[#instruction_width - 1:0]\n" ]
+            #string         [ #last ] [ #data "    Register bytecode[#instruction_width - 1:0][" ] [ #scope:size ] [ #data ":0]\n" ]
+            #string         [ #last ] [ #data "    Register operants[#operant_width - 1:0][" ] [ #scope:size ] [ #data ":0]\n" ]
+            #string         [ #last ] [ #data "    Wire program_counter[#counter_width - 1:0]\n" ]
+            #string         [ #last ] [ #data "    Wire bus[#bus_width - 1:0]\n" ]
+            #set            [ #data code ] [ #last ]
+
+            @ synthesis clock
+            #if             [ #data #true ] [ #scope:synthesise ]
+            #string         [ #scope:code ] [ #data "\n    reg clock = 0;\n" ]
+            #string         [ #last ] [ #data "    always #0.5 clock = ~clock;\n" ]
+            #set            [ #data code ] [ #last ]
+            #end
+
+            @ offset and step variables
+            #subtract       [ #scope:selector_width ] [ #data 1 ]
+            #set            [ #data instruction_step ] [ #last ]
+            #set            [ #data instruction_offset ] [ #scope:instruction_width ]
+            #subtract       [ #scope:bit_width ] [ #data 1 ]
+            #set            [ #data bus_step ] [ #last ]
+            #set            [ #data bus_offset ] [ #data 0 ]
+            #multiply       [ #scope:bit_width ] [ #build:counter:operant ]
+            #set            [ #data operant_offset ] [ #last ]
+
+            @ create modules
+            #iterate        [ #build:modules ]
+                #set            [ #data iterator ] [ #last ]
+                #if             [ #data #keyword ] [ #scope:iterator:instance:1 ]
+                    #for            [ #data 1 ] [ #scope:iterator:instance:2 ]
+                        #set            [ #data offset ] [ #last ]
+                        #if             [ #data #equals ] [ #scope:iterator:instance:1 ] [ #data #operant ]
+                            #set            [ #data current_offset ] [ #scope:bus_offset ]
+                            #add            [ #scope:bus_offset ] [ #scope:bus_step ]
+                            #set            [ #data bus_offset ] [ #last ]
+                            #string         [ #scope:code ] [ #data "\n    bus[" ] [ #scope:bus_offset ] [ #data ":" ] [ #scope:current_offset ] [ #data "] := operants[program_counter][" ]
+                            #set            [ #data code ] [ #last ]
+                            #add            [ #scope:bus_offset ] [ #data 1 ]
+                            #set            [ #data bus_offset ] [ #last ]
+
+                            #subtract       [ #scope:operant_offset ] [ #data 1 ]
+                            #set            [ #data operant_offset ] [ #last ]
+                            #string         [ #scope:code ] [ #scope:operant_offset ]
+                            #set            [ #data code ] [ #last ]
+                            #subtract       [ #scope:operant_offset ] [ #scope:bus_step ]
+                            #set            [ #data operant_offset ] [ #last ]
+                            #string         [ #scope:code ] [ #data ":" ] [ #scope:operant_offset ] [ #data "]" ]
+                            #set            [ #data code ] [ #last ]
+
+                        #else           [ #data #equals ] [ #scope:iterator:instance:1 ] [ #data #data ]
+                            #subtract       [ #scope:instruction_offset ] [ #data 1 ]
+                            #set            [ #data instruction_offset ] [ #last ]
+                            #string         [ #scope:code ] [ #data "\n    BusRegister" ] [ #data "(clock, bus, instruction[" ] [ #scope:instruction_offset ]
+                            #set            [ #data code ] [ #last ]
+                            #subtract       [ #scope:instruction_offset ] [ #scope:instruction_step ]
+                            #set            [ #data instruction_offset ] [ #last ]
+                            #string         [ #scope:code ] [ #data ":" ] [ #scope:instruction_offset ] [ #data "], " ]
+                            #set            [ #data code ] [ #last ]
+
+                            #set            [ #data current_offset ] [ #scope:bus_offset ]
+                            #add            [ #scope:bus_offset ] [ #scope:bus_step ]
+                            #set            [ #data bus_offset ] [ #last ]
+                            #string         [ #scope:code ] [ #data "bus[" ] [ #scope:bus_offset ] [ #data ":" ] [ #scope:current_offset ] [ #data "])" ]
+                            #set            [ #data code ] [ #last ]
+                            #add            [ #scope:bus_offset ] [ #data 1 ]
+                            #set            [ #data bus_offset ] [ #last ]
+
+                        #else           [ #data #equals ] [ #scope:iterator:instance:1 ] [ #data #memory ]
+                            @ TODO:
+                        #end
+                    #end
+                #else
+                    #index          [ #root:module_list ] [ #scope:iterator:instance:1 ]
+                    #string         [ #scope:code ] [ #data "\n    " ] [ #last:name ] [ #data "(clock, bus" ]
+                    #set            [ #data code ] [ #last ]
+
+                    #index          [ #root:module_list ] [ #scope:iterator:instance:1 ]
+                    #set            [ #data list_entry ] [ #last ]
+                    #iterate        [ #scope:list_entry:registers ] @ MOVE TO METHOD (WITH STEPS ETC.)
+                        #if             [ #data #keyword ] [ #last:instance ]
+                            #subtract       [ #scope:instruction_offset ] [ #data 1 ]
+                            #set            [ #data instruction_offset ] [ #last ]
+                            #string         [ #scope:code ] [ #data ", instruction[" ] [ #scope:instruction_offset ]
+                            #set            [ #data code ] [ #last ]
+                            #subtract       [ #scope:instruction_offset ] [ #scope:instruction_step ]
+                            #set            [ #data instruction_offset ] [ #last ]
+                            #string         [ #scope:code ] [ #data ":" ] [ #scope:instruction_offset ] [ #data "]" ]
+                            #set            [ #data code ] [ #last ]
+                        #end
+                    #end
+
+                    #iterate        [ #scope:list_entry:registers ] @ MOVE TO METHOD (WITH STEPS ETC.)
+                        #set            [ #data current_offset ] [ #scope:bus_offset ]
+                        #add            [ #scope:bus_offset ] [ #scope:bus_step ]
+                        #set            [ #data bus_offset ] [ #last ]
+                        #string         [ #scope:code ] [ #data ", bus[" ] [ #scope:bus_offset ] [ #data ":" ] [ #scope:current_offset ] [ #data "]" ]
+                        #set            [ #data code ] [ #last ]
+                        #add            [ #scope:bus_offset ] [ #data 1 ]
+                        #set            [ #data bus_offset ] [ #last ]
+                    #end
+
+                    #if             [ #data #present ] [ #scope:list_entry ] [ #data uses ]
+                        #iterate        [ #scope:list_entry:uses ]
+                            #if             [ #data #equals ] [ #last:instance ] [ #data instruction ]
+                            #string         [ #scope:code ] [ #data ", program_counter" ]
+                            #set            [ #data code ] [ #last ]
+                            #else           [ #data #equals ] [ #last:instance ] [ #data selector ]
+                            #string         [ #scope:code ] [ #data ", memory_selector" ]
+                            #set            [ #data code ] [ #last ]
+                            #else           [ #data #equals ] [ #last:instance ] [ #data serial_receive ]
+                            #string         [ #scope:code ] [ #data ", UART_RECEIVE" ]
+                            #set            [ #data code ] [ #last ]
+                            #else           [ #data #equals ] [ #last:instance ] [ #data serial_transmit ]
+                            #string         [ #scope:code ] [ #data ", UART_TRANSMIT" ]
+                            #set            [ #data code ] [ #last ]
+                            #end
+                        #end
+                    #end
+
+                    #string         [ #scope:code ] [ #data ")" ]
+                    #set            [ #data code ] [ #last ]
+                #end
+            #end
+
+            @ generate empty instruction
+            #string         [ #scope:code ] [ #data "\n\n    instruction := { " ]
+            #set            [ #data code ] [ #last ]
+            #for            [ #data 1 ] [ #build:counter:full_register ]
+            #set            [ #data index ] [ #last ]
+            #string         [ #scope:code ] [ #data "#instruction_width[!0]" ]
+            #set            [ #data code ] [ #last ]
+            #if             [ #data #not_equals ] [ #scope:index ] [ #build:counter:full_register ]
+            #string         [ #scope:code ] [ #data ", " ]
+            #set            [ #data code ] [ #last ]
+            #end
+            #end
+            #string         [ #scope:code ] [ #data " }\n" ]
+            #set            [ #data code ] [ #last ]
+
+            @ generate bytecode
+            #iterate        [ #build:bytecode ]
+            #set            [ #data iterator ] [ #last ]
+            #subtract       [ #scope:iterator:selector ] [ #data 1 ]
+            #string         [ #scope:code ] [ #data "    bytecode[" ] [ #last ] [ #data "] := { " ]
+            #set            [ #data code ] [ #last ]
+            #call           [ #method:generate:instruction ] [ #scope:iterator:instance ] @ CONVERT SIGNED TO BITS!!!!!!
+            #string         [ #scope:code ] [ #last ] [ #data " }\n" ]
+            #set            [ #data code ] [ #last ]
+            #end
+
+            @ generate operants
+            #iterate        [ #build:operants ]
+            #set            [ #data iterator ] [ #last ]
+            #subtract       [ #scope:iterator:selector ] [ #data 1 ]
+            #string         [ #scope:code ] [ #data "    operants[" ] [ #last ] [ #data "] := { " ]
+            #set            [ #data code ] [ #last ]
+            #call           [ #method:generate:operant ] [ #scope:iterator:instance ]
+            #string         [ #scope:code ] [ #last ] [ #data " }\n" ]
+            #set            [ #data code ] [ #last ]
+            #end
+
+            @ negative clock edge behaviour
+            #string         [ #scope:code ] [ #data "\n    on falling clock {\n" ]
+            #string         [ #last ] [ #data "        instruction := bytecode[program_counter]\n" ]
+            #string         [ #last ] [ #data "    }\n}\n\n" ]
+            #set            [ #data code ] [ #last ]
+
+            @ include predefined modules
+            #set            [ #data sourced ] [ #data [] ]
+            #iterate        [ #build:modules ]
+            #if             [ #data #identifier ] [ #last:instance:1 ]
+            #index          [ #root:module_list ] [ #last:instance:1 ]
+            #string         [ #root:module_directory ] [ #last:source ] @ MOVE THIS TO A PARAMETER
+            #if             [ #data #not_contains ] [ #scope:sourced ] [ #last ]
+            #insert         [ #scope:sourced ] [ #data -1 ] [ #last ]
+            #set            [ #data sourced ] [ #last ]
+            #read_file      [ #scope:sourced:-1 ]
+            #string         [ #scope:code ] [ #last ] [ #data "\n" ]
+            #set            [ #data code ] [ #last ]
+            #end
+            #end
+            #end
+
+            @
+            #insert         [ #build ] [ #data code ] [ #scope:code ]
+            #modify         [ #data #build ] [ #last ]
+            #return         [ #scope:self ]
+        ]
+    }
+}

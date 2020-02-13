@@ -1,0 +1,6 @@
+component InverterModule<count>(in clock, in selector[#clog(#count + 1):0], in source[(#bit_width - 1) * #count:0], out destination[#bit_width - 1:0][1]) {
+    Wire input[#bit_width - 1:0]
+    BusRegister<#count>(clock, selector, source, input)
+    destination[0] := input
+    destination[1] := ~input
+}

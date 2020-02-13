@@ -1,0 +1,68 @@
+#method {
+
+    define {
+
+        define_block [ [ #single self ]
+
+            @ debug message
+            #if             [ #data #true ] [ #root:debug ]
+            #call           [ #method:print:debug ] [ #data "defining directive " ] [ #root:color:magenta ] [ #scope:self:identifier ] [ #root:color:none ]
+            #end
+
+            @ make sure the directive is not already defined
+            #if             [ #data #present ] [ #build:directives ] [ #scope:self:identifier ]
+
+            @ if previous directive is a compiler directive
+            #index          [ #build:directives ] [ #scope:self:identifier ]
+            #if             [ #data #equals ] [ #last:2 ] [ #data #none ]
+            #print_line     [ #root:color:red ] [ #data "\nredefininition of compiler constant" ] [ #root:color:none ]
+
+            @ if previous directive is user directive
+            #else
+            #print_line     [ #root:color:red ] [ #data "\nprevious definition of directive " ] [ #scope:self:identifier ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #last:2 ]
+            #print_line     [ #root:color:red ] [ #data "\nredefined here" ] [ #root:color:none ]
+            #end
+
+            @ print directive to be defined
+            #range          [ #scope:self:#position:identifier ] [ #scope:self:#position:value ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #last ]
+            #print_line
+            #error          [ #data "directive " ] [ #scope:self:identifier ] [ #data " may only be defined once" ]
+            #end
+
+            @ check naming scheme
+            #if             [ #data #uppercase ] [ #scope:self:identifier:1 ]
+            #print_line     [ #root:color:yellow ] [ #data "\ndirectives should start with a lowercase character" ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:yellow ] [ #scope:self:#position:identifier ]
+            #print_line
+            #end
+
+            @ create new entry and save it to #build:directives
+            #range          [ #scope:self:#position:identifier ] [ #scope:self:#position:value ]
+            #list           [ #scope:self:value ] [ #last ]
+            #insert         [ #build:directives ] [ #scope:self:identifier ] [ #last ]
+            #modify         [ #data #build:directives ] [ #last ]
+            #return         [ #scope:self ]
+        ]
+
+        top [ [ #single self ]
+
+            @ if debug is enabled, print the current pass
+            #if             [ #data #true ] [ #root:debug ]
+            #call           [ #method:print_pass ] [ #data "define" ]
+            #end
+
+            @ create initial maps
+            #remember       [ #data { true [ !true #none ] false [ !false #none ] default [ #default #none ] } ]
+            #map            [ #data labels ] [ #data {} ] [ #data code_sections ] [ #data [] ] [ #data memory_sections ] [ #data [] ] [ #data directives ] [ #last ]
+            #modify         [ #data #build ] [ #last ]
+
+            @ pass sections if present
+            #if             [ #data #present ] [ #scope:self ] [ #data sections ]
+            #pass           [ #scope:self:sections ]
+            #end
+            #return         [ #scope:self ]
+        ]
+    }
+}

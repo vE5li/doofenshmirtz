@@ -1,0 +1,23 @@
+component HalfAdder(in input0, in input1, out sum, out carry) {
+    sum := input0 ^ input1
+    carry := input0 & input1
+}
+
+component FullAdder(in input0, in input1, in carry_in, out sum, out carry_out) {
+    sum := input0 ^ input1 ^ carry_in
+    carry := (input0 & input1) | ((input0 ^ input1) & carry_in)
+}
+
+component Adder(in input0[#bit_range(1)], in input1[#bit_range(1)], out sum[#bit_range(1)], out carry_out) {
+    Wire carry[#bit_range(1)]
+    HalfAdder(input0[0], input1[0], sum[0], carry[0])
+    carry_out := carry[bit_width - 1]
+}
+
+component AdderComponent(in clock, in bus[#bus_range], in selectors[#selector_range(2)], out destinations[#bit_range(4)]) {
+    Wire carry_out
+    BusRegister(clock, bus, selectors[#selector(0)], destinations[#bits(0)])
+    BusRegister(clock, bus, selectors[#selector(1)], destinations[#bits(1)])
+    Adder(destinations[#bits(0)], destinations[#bits(1)], destinations[#bits(2)], carry_out)
+    destinations[#bits(3)] := #bit_width[carry_out]
+}

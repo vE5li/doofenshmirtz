@@ -1,0 +1,23 @@
+component ComparitorModule<count0, count1>(in clock, in selector0[#selector(#count0)], in selector1[#selector(#count1)], in source0[#source(#count0)], in source1[#source(#count1)], out destination[#bit_width - 1:0][4:0]) {
+    Wire input_wire[#bit_width - 1:0][1:0]
+    Wire buffer_wire[#bit_width - 1:0][1:0]
+    Register data[2:0]
+
+    BufferedBusRegister<#count0>(clock, selector0, source0, buffer_wire[0], input_wire[0])
+    BufferedBusRegister<#count1>(clock, selector1, source1, buffer_wire[1], input_wire[1])
+
+    destination[0] := input_wire[0]
+    destination[1] := input_wire[1]
+    destination[2] := #bit_width[data[0]]
+    destination[3] := #bit_width[data[1]]
+    destination[4] := #bit_width[data[2]]
+
+    on falling clock {
+        data[0] := buffer_wire[0] == buffer_wire[1]
+        data[1] := buffer_wire[0] > buffer_wire[1]
+        data[2] := buffer_wire[0] < buffer_wire[1]
+    }
+}
+
+define selector(count) := #clog(#count + 1) - 1:0
+define source(count) := #bit_width * #count - 1:0
