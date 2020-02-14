@@ -13,7 +13,7 @@ project {
 directory {
     library         "/home/code/qtc8/library/"
     core            "/home/code/ktl9/core/"
-    pass            "/home/code/ktl9/pass/"
+    pass            "/home/code/ktl9/passes/"
     module          "/home/code/ktl9/module/"
 }
 
