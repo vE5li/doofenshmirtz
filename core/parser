@@ -138,7 +138,7 @@
         [ [ #operator [ subtract   ] ] [ #template   negative   [ value            ] ]                               ]
         [ [ #operator [ invert     ] ] [ #template   inverted   [ value            ] ]                               ]
         [ [ #operator [ open_round ] ] [ #template   passed     [ value            ] ] [ #operator [ close_round ] ] ]
-        [ [ #operator [ directive  ] ] [ #identifier method                          ] [ #merge    [ parameters  ] ] ]
+        [ [ #operator [ directive  ] ] [ #identifier function                        ] [ #merge    [ parameters  ] ] ]
     ]
 
     define_block [ { define [ define:define_block ] indent [ indent:define_block ] }

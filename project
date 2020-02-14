@@ -17,7 +17,7 @@ directory {
     module          "/home/code/ktl9/module/"
 }
 
-#method {
+#function {
 
     process_arguments [ [ #single arguments ]
 
@@ -32,7 +32,7 @@ directory {
         #index          [ #scope:arguments ] [ #scope:index ]
 
         @ set output file
-        #else           [ #data #equals ] [ #last ] [ #data "-o" ]
+        #if             [ #data #equals ] [ #last ] [ #data "-o" ]
         #if             [ #data #not_bigger ] [ #scope:count ] [ #scope:index ]
         #error          [ #data "expected output file" ]
         #end
@@ -80,7 +80,7 @@ directory {
         #set            [ #data start_time ] [ #last ]
 
         @ process command line arguments
-        #call           [ #method:process_arguments ] [ #scope:arguments ]
+        #call           [ #function:process_arguments ] [ #scope:arguments ]
         #set            [ #data configuration ] [ #last ]
 
         @ load the compiler core
@@ -111,7 +111,7 @@ directory {
 
         @ debug message
         #if             [ #data #true ] [ #scope:configuration:debug ]
-        #call           [ #method:print:debug ] [ #data "libraries loaded" ]
+        #call           [ #function:print:debug ] [ #data "libraries loaded" ]
         #end
 
         @
@@ -145,7 +145,7 @@ directory {
 
         @ debug message
         #if             [ #data #true ] [ #scope:configuration:debug ]
-        #call           [ #method:print:debug ] [ #data "loading the pipeline" ]
+        #call           [ #function:print:debug ] [ #data "loading the pipeline" ]
         #end
 
         @ load the pipeline and the passes that are going to be used
@@ -156,8 +156,8 @@ directory {
 
         @ debug message
         #if             [ #data #true ] [ #scope:configuration:debug ]
-        #call           [ #method:format:tag ] [ #root:color:magenta ] [ #data "pass" ]
-        #call           [ #method:print:debug ] [ #last ] [ #data " loading " ] [ #scope:pass ]
+        #call           [ #function:format:tag ] [ #root:color:magenta ] [ #data "pass" ]
+        #call           [ #function:print:debug ] [ #last ] [ #data " loading " ] [ #scope:pass ]
         #end
 
         @
@@ -169,7 +169,7 @@ directory {
 
         @ debug message
         #if             [ #data #true ] [ #scope:configuration:debug ]
-        #call           [ #method:print:debug ] [ #data "loading the module list" ]
+        #call           [ #function:print:debug ] [ #data "loading the module list" ]
         #end
 
         @ load the module index and build the parsed files
@@ -181,7 +181,7 @@ directory {
 
         @ debug message
         #if             [ #data #true ] [ #scope:configuration:debug ]
-        #call           [ #method:print:debug ] [ #data "building top" ]
+        #call           [ #function:print:debug ] [ #data "building top" ]
         #end
 
         @
@@ -190,7 +190,7 @@ directory {
 
         @ debug message
         #if             [ #data #true ] [ #scope:configuration:debug ]
-        #call           [ #method:print:debug ] [ #data "writing code to file " ] [ #root:color:magenta ] [ #scope:configuration:output ] [ #root:color:none ]
+        #call           [ #function:print:debug ] [ #data "writing code to file " ] [ #root:color:magenta ] [ #scope:configuration:output ] [ #root:color:none ]
         #end
         #write_file     [ #scope:configuration:output ] [ #scope:build:code ]
 
@@ -202,27 +202,27 @@ directory {
 
         @ output debug information if the user input is yes
         #if             [ #data #true ] [ #scope:configuration:debug ]
-        #call           [ #method:format:tag ] [ #root:color:magenta ] [ #data "debug" ]
+        #call           [ #function:format:tag ] [ #root:color:magenta ] [ #data "debug" ]
         #print          [ #last ] [ #data " print build map? (yes, " ] [ #root:color:magenta ] [ #data "no" ] [ #root:color:none ] [ #data ") " ]
         #flush
         #input
         #if             [ #data #equals ] [ #last ] [ #data "yes" ]
-        #call           [ #method:output_debug ] [ #scope:build ]
+        #call           [ #function:output_debug ] [ #scope:build ]
         #end
         #end
 
         @ print the compilation time
-        #call           [ #method:print:success ] [ #data "completed in " ] [ #scope:duration ] [ #data "s"]
+        #call           [ #function:print:success ] [ #data "completed in " ] [ #scope:duration ] [ #data "s"]
     ]
 
     output_debug [ [ #single build ]
 
         @ final sections that will be placed in memory
-        #call           [ #method:format:serialize ] [ #scope:build:bytecode ] [ #data "" ]
+        #call           [ #function:format:serialize ] [ #scope:build:bytecode ] [ #data "" ]
         #print_line     [ #root:color:magenta ] [ #data "build:bytecode " ] [ #root:color:none ] [ #last ]
-        #call           [ #method:format:serialize ] [ #scope:build:operants ] [ #data "" ]
+        #call           [ #function:format:serialize ] [ #scope:build:operants ] [ #data "" ]
         #print_line     [ #root:color:magenta ] [ #data "build:operants " ] [ #root:color:none ] [ #last ]
-        #call           [ #method:format:serialize ] [ #scope:build:memory ] [ #data "" ]
+        #call           [ #function:format:serialize ] [ #scope:build:memory ] [ #data "" ]
         #print_line     [ #root:color:magenta ] [ #data "build:memory " ] [ #root:color:none ] [ #last ]
 
         @ number of registers instanciated
@@ -232,39 +232,39 @@ directory {
         #print_line     [ #root:color:magenta ] [ #data "build:counter:full_register " ] [ #root:color:none ] [ #scope:build:counter:full_register ]
 
         @ core modules in the same order that they are in the core
-        #call           [ #method:format:serialize ] [ #scope:build:modules ] [ #data "" ]
+        #call           [ #function:format:serialize ] [ #scope:build:modules ] [ #data "" ]
         #print_line     [ #root:color:magenta ] [ #data "build:modules " ] [ #root:color:none ] [ #last ]
-        #call           [ #method:format:serialize ] [ #scope:build:driven ] [ #data "" ]
+        #call           [ #function:format:serialize ] [ #scope:build:driven ] [ #data "" ]
         #print_line     [ #root:color:magenta ] [ #data "build:driven " ] [ #root:color:none ] [ #last ]
 
         @ lookup tables for modules and directives
-        #call           [ #method:format:serialize ] [ #scope:build:module_lookup ] [ #data "" ]
+        #call           [ #function:format:serialize ] [ #scope:build:module_lookup ] [ #data "" ]
         #print_line     [ #root:color:magenta ] [ #data "build:module_lookup " ] [ #root:color:none ] [ #last ]
-        #call           [ #method:format:level ] [ #scope:build:directives ] [ #data 80 ]
+        #call           [ #function:format:level ] [ #scope:build:directives ] [ #data 80 ]
         #print_line     [ #root:color:magenta ] [ #data "build:directives " ] [ #root:color:none ] [ #last ]
 
         @ memory map (if present)
         #if             [ #data #present ] [ #scope:build ] [ #data memory_map ]
-        #call           [ #method:format:serialize ] [ #scope:build:memory_map ] [ #data "" ]
+        #call           [ #function:format:serialize ] [ #scope:build:memory_map ] [ #data "" ]
         #print_line     [ #root:color:magenta ] [ #data "build:memory_map " ] [ #root:color:none ] [ #last ]
         #end
 
         @ code map (if present)
         #if             [ #data #present ] [ #scope:build ] [ #data code_map ]
-        #call           [ #method:format:serialize ] [ #scope:build:code_map ] [ #data "" ]
+        #call           [ #function:format:serialize ] [ #scope:build:code_map ] [ #data "" ]
         #print_line     [ #root:color:magenta ] [ #data "build:code_map " ] [ #root:color:none ] [ #last ]
         #end
 
         @ sections and section labels
-        #call           [ #method:format:serialize ] [ #scope:build:code_sections ] [ #data "" ]
+        #call           [ #function:format:serialize ] [ #scope:build:code_sections ] [ #data "" ]
         #print_line     [ #root:color:magenta ] [ #data "build:code_sections " ] [ #root:color:none ] [ #last ]
-        #call           [ #method:format:serialize ] [ #scope:build:memory_sections ] [ #data "" ]
+        #call           [ #function:format:serialize ] [ #scope:build:memory_sections ] [ #data "" ]
         #print_line     [ #root:color:magenta ] [ #data "build:memory_sections " ] [ #root:color:none ] [ #last ]
-        #call           [ #method:format:serialize ] [ #scope:build:labels ] [ #data "" ]
+        #call           [ #function:format:serialize ] [ #scope:build:labels ] [ #data "" ]
         #print_line     [ #root:color:magenta ] [ #data "build:labels " ] [ #root:color:none ] [ #last ]
 
         @ entire compiler
-        #call           [ #method:format:level ] [ #scope:build ] [ #data 80 ]
+        #call           [ #function:format:level ] [ #scope:build ] [ #data 80 ]
         #print_line     [ #root:color:magenta ] [ #data "build " ] [ #root:color:none ] [ #last ]
     ]
 }

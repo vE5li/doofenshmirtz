@@ -1,4 +1,4 @@
-#method {
+#function {
 
     generate {
 
@@ -48,7 +48,7 @@
 
             @ if debug is enabled, print the current pass
             #if             [ #data #true ] [ #root:debug ]
-            #call           [ #method:print_pass ] [ #data "generate" ]
+            #call           [ #function:print_pass ] [ #data "generate" ]
             #end
 
             @ ???????????
@@ -239,7 +239,7 @@
             #subtract       [ #scope:iterator:selector ] [ #data 1 ]
             #string         [ #scope:code ] [ #data "    bytecode[" ] [ #last ] [ #data "] := { " ]
             #set            [ #data code ] [ #last ]
-            #call           [ #method:generate:instruction ] [ #scope:iterator:instance ] @ CONVERT SIGNED TO BITS!!!!!!
+            #call           [ #function:generate:instruction ] [ #scope:iterator:instance ] @ CONVERT SIGNED TO BITS!!!!!!
             #string         [ #scope:code ] [ #last ] [ #data " }\n" ]
             #set            [ #data code ] [ #last ]
             #end
@@ -250,7 +250,7 @@
             #subtract       [ #scope:iterator:selector ] [ #data 1 ]
             #string         [ #scope:code ] [ #data "    operants[" ] [ #last ] [ #data "] := { " ]
             #set            [ #data code ] [ #last ]
-            #call           [ #method:generate:operant ] [ #scope:iterator:instance ]
+            #call           [ #function:generate:operant ] [ #scope:iterator:instance ]
             #string         [ #scope:code ] [ #last ] [ #data " }\n" ]
             #set            [ #data code ] [ #last ]
             #end

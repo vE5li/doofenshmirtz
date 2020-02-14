@@ -6,34 +6,34 @@ resource {
     selector        !true  @ memory selector
 }
 
-#method {
+#function {
 
     #note [ [ #single flag [ identifier ] ] [ #single message [ string ] ]
         #split          [ #context:#file ] [ #data '/' ] [ #data !true ]
-        #call           [ #method:format:tag ] [ #root:color:blue ] [ #last:-1 ]
+        #call           [ #function:format:tag ] [ #root:color:blue ] [ #last:-1 ]
         #set            [ #data module ] [ #last ]
-        #call           [ #method:format:tag ] [ #root:color:yellow ] [ #scope:flag ]
+        #call           [ #function:format:tag ] [ #root:color:yellow ] [ #scope:flag ]
         #print_line     [ #scope:module ] [ #data " " ] [ #last ] [ #data " " ] [ #scope:message ]
     ]
 
     #tokenize [
         #if             [ #data #true ] [ #root:debug ]
-        #call           [ #method:format:tag ] [ #root:color:magenta ] [ #data "file" ]
-        #call           [ #method:print:debug ] [ #last ] [ #data " tokenizing " ] [ #root:color:magenta ] [ #context:#file ] [ #root:color:none ]
+        #call           [ #function:format:tag ] [ #root:color:magenta ] [ #data "file" ]
+        #call           [ #function:print:debug ] [ #last ] [ #data " tokenizing " ] [ #root:color:magenta ] [ #context:#file ] [ #root:color:none ]
         #end
     ]
 
     #parse [
         #if             [ #data #true ] [ #root:debug ]
-        #call           [ #method:format:tag ] [ #root:color:magenta ] [ #data "file" ]
-        #call           [ #method:print:debug ] [ #last ] [ #data " parsing " ] [ #root:color:magenta ] [ #context:#file ] [ #root:color:none ]
+        #call           [ #function:format:tag ] [ #root:color:magenta ] [ #data "file" ]
+        #call           [ #function:print:debug ] [ #last ] [ #data " parsing " ] [ #root:color:magenta ] [ #context:#file ] [ #root:color:none ]
         #end
     ]
 
     #build [ ]
 
     print_pass [ [ #single pass ]
-        #call           [ #method:format:tag ] [ #root:color:magenta ] [ #data "pass" ]
-        #call           [ #method:print:debug ] [ #last ] [ #data " running " ] [ #scope:pass ]
+        #call           [ #function:format:tag ] [ #root:color:magenta ] [ #data "pass" ]
+        #call           [ #function:print:debug ] [ #last ] [ #data " running " ] [ #scope:pass ]
     ]
 }

@@ -1,15 +1,15 @@
-#method {
+#function {
 
     indent {
 
-        valid_methods [ string float integer character length add subtract multiply divide modulo logarithm power square_root negate absolute ceiling floor round sine cosine tangent not and or xor shift_left shift_right empty flip uppercase lowercase read_file ]
+        valid_functions [ string float integer character length add subtract multiply divide modulo logarithm power square_root negate absolute ceiling floor round sine cosine tangent not and or xor shift_left shift_right empty flip uppercase lowercase read_file ]
 
         resolved [ [ #single directive ] [ #single checking ] [ #single position ]
 
             @ ensure that the directive exists and is not already being resolved
             #if             [ #data #not_present ] [ #build:directives ] [ #scope:directive ]
             #print_line     [ #root:color:red ] [ #data "\ninvalid directive " ] [ #scope:directive ] [ #root:color:none ]
-            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:position ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:position ]
             #print_line
             #error          [ #scope:directive ] [ #data " is not a valid directive" ]
             #end
@@ -17,7 +17,7 @@
             @ make sure that the directive is not defined by itself
             #if             [ #data #contains ] [ #scope:checking ] [ #scope:directive ]
             #print_line     [ #root:color:red ] [ #data "\nlooped directive " ] [ #scope:directive ] [ #root:color:none ]
-            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:position ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:position ]
             #print_line
             #error          [ #data "directives may not be defined by itself" ]
             #end
@@ -37,7 +37,7 @@
             @ debug message
             #if             [ #data #true ] [ #root:debug ]
             #serialize      [ #scope:entry:1 ]
-            #call           [ #method:print:debug ] [ #data "directive " ] [ #root:color:magenta ] [ #scope:directive ] [ #root:color:none ] [ #data " set to " ] [ #root:color:magenta ] [ #last ] [ #root:color:none ]
+            #call           [ #function:print:debug ] [ #data "directive " ] [ #root:color:magenta ] [ #scope:directive ] [ #root:color:none ] [ #data " set to " ] [ #root:color:magenta ] [ #last ] [ #root:color:none ]
             #end
 
             @ return newly resolved value
@@ -49,7 +49,7 @@
         ]
 
         directive [ [ #single self ] [ #single checking ]
-            #call           [ #method:indent:resolved ] [ #scope:self:directive ] [ #scope:checking ] [ #scope:self:#position:directive ]
+            #call           [ #function:indent:resolved ] [ #scope:self:directive ] [ #scope:checking ] [ #scope:self:#position:directive ]
             #return         [ #last ]
         ]
 
@@ -67,7 +67,7 @@
             #if             [ #data #not_boolean ] [ #scope:condition ]
             #type           [ #scope:condition ]
             #print_line     [ #root:color:red ] [ #data "\nunexpected " ] [ #last ] [ #root:color:none ]
-            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:self:#position:condition ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:self:#position:condition ]
             #print_line
             #error          [ #data "condition may only be a boolean" ]
             #end
@@ -92,18 +92,18 @@
             #else           [ #data #not_list ] [ #scope:source:1 ]
             #type           [ #scope:source:1 ]
             #print_line     [ #root:color:red ] [ #data "\nunexpected " ] [ #last ] [ #root:color:none ]
-            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:source:2 ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:source:2 ]
             #print_line
             #error          [ #data "only numbers and characters may be part of an equasion" ]
             #end
 
             @ get the final left and right values
-            #call           [ #method:indent:calculate_total ] [ #scope:source:1 ]
+            #call           [ #function:indent:calculate_total ] [ #scope:source:1 ]
             #set            [ #data left ] [ #last ]
-            #call           [ #method:indent:calculate_total ] [ #scope:source:3 ]
+            #call           [ #function:indent:calculate_total ] [ #scope:source:3 ]
             #set            [ #data right ] [ #last ]
 
-            @ invoke a math method set by the operator
+            @ invoke a math function set by the operator
             #list           [ #scope:left ] [ #scope:right ]
             #set            [ #data parameters ] [ #last ]
             #keyword        [ #scope:source:2 ]
@@ -119,9 +119,9 @@
             #end
 
             @ get the final left and right values
-            #call           [ #method:indent:calculate_condition ] [ #scope:source:1 ]
+            #call           [ #function:indent:calculate_condition ] [ #scope:source:1 ]
             #set            [ #data left ] [ #last ]
-            #call           [ #method:indent:calculate_condition ] [ #scope:source:3 ]
+            #call           [ #function:indent:calculate_condition ] [ #scope:source:3 ]
             #set            [ #data right ] [ #last ]
 
             @ check if its a logical operator
@@ -132,13 +132,13 @@
 
             @ ensure both values are booleans
             #if             [ #data #not_boolean ] [ #scope:left ]
-            #call           [ #method:indent:boolean_error ] [ #scope:left ] [ #scope:source:1:2 ]
+            #call           [ #function:indent:boolean_error ] [ #scope:left ] [ #scope:source:1:2 ]
             #end
             #if             [ #data #not_boolean ] [ #scope:right ]
-            #call           [ #method:indent:boolean_error ] [ #scope:right ] [ #scope:source:3:2 ]
+            #call           [ #function:indent:boolean_error ] [ #scope:right ] [ #scope:source:3:2 ]
             #end
 
-            @ invoke a math method set by the operator
+            @ invoke a math function set by the operator
             #list           [ #scope:left ] [ #scope:right ]
             #invoke         [ #scope:instruction ] [ #last ]
             #return         [ #last ]
@@ -222,7 +222,7 @@
         boolean_error [ [ #single instance ] [ #single position ]
             #type           [ #scope:instance ]
             #print_line     [ #root:color:red ] [ #data "\nunexpected " ] [ #last ] [ #root:color:none ]
-            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:position ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:position ]
             #print_line
             #error          [ #data "logical operators may only operate on booleans" ]
         ]
@@ -230,35 +230,35 @@
         equasion [ [ #single self ] [ #single checking ]
 
             @ put all values and operators into a single list
-            #call           [ #method:indent:combine_equasion ] [ #scope:self:pieces ] [ #scope:checking ]
+            #call           [ #function:indent:combine_equasion ] [ #scope:self:pieces ] [ #scope:checking ]
 
             @ put the operators and values into individual lists so they reolve in the correct order
-            #call           [ #method:indent:pull ] [ #last ] [ #data [ multiply divide remainder ] ]
-            #call           [ #method:indent:pull ] [ #last ] [ #data [ add subtract ] ]
-            #call           [ #method:indent:pull ] [ #last ] [ #data [ shift_left shift_right ] ]
-            #call           [ #method:indent:pull ] [ #last ] [ #data [ and ] ]
-            #call           [ #method:indent:pull ] [ #last ] [ #data [ xor ] ]
-            #call           [ #method:indent:pull ] [ #last ] [ #data [ or ] ]
+            #call           [ #function:indent:pull ] [ #last ] [ #data [ multiply divide remainder ] ]
+            #call           [ #function:indent:pull ] [ #last ] [ #data [ add subtract ] ]
+            #call           [ #function:indent:pull ] [ #last ] [ #data [ shift_left shift_right ] ]
+            #call           [ #function:indent:pull ] [ #last ] [ #data [ and ] ]
+            #call           [ #function:indent:pull ] [ #last ] [ #data [ xor ] ]
+            #call           [ #function:indent:pull ] [ #last ] [ #data [ or ] ]
 
             @ resolve the equasion
-            #call           [ #method:indent:calculate_total ] [ #last ]
+            #call           [ #function:indent:calculate_total ] [ #last ]
             #return         [ #last ]
         ]
 
         logical_equasion [ [ #single self ] [ #single checking ]
 
             @ put all values and operators into a single list
-            #call           [ #method:indent:combine_equasion ] [ #scope:self:pieces ] [ #scope:checking ]
+            #call           [ #function:indent:combine_equasion ] [ #scope:self:pieces ] [ #scope:checking ]
 
             @ put the operators and values into individual lists so they reolve in the correct order
-            #call           [ #method:indent:pull ] [ #last ] [ #data [ bigger smaller not_smaller not_bigger ] ]
-            #call           [ #method:indent:pull ] [ #last ] [ #data [ equals not_equals ] ]
-            #call           [ #method:indent:pull ] [ #last ] [ #data [ logical_and ] ]
-            #call           [ #method:indent:pull ] [ #last ] [ #data [ logical_xor ] ]
-            #call           [ #method:indent:pull ] [ #last ] [ #data [ logical_or ] ]
+            #call           [ #function:indent:pull ] [ #last ] [ #data [ bigger smaller not_smaller not_bigger ] ]
+            #call           [ #function:indent:pull ] [ #last ] [ #data [ equals not_equals ] ]
+            #call           [ #function:indent:pull ] [ #last ] [ #data [ logical_and ] ]
+            #call           [ #function:indent:pull ] [ #last ] [ #data [ logical_xor ] ]
+            #call           [ #function:indent:pull ] [ #last ] [ #data [ logical_or ] ]
 
             @ resolve the equasion
-            #call           [ #method:indent:calculate_condition ] [ #last ]
+            #call           [ #function:indent:calculate_condition ] [ #last ]
             #return         [ #last ]
         ]
 
@@ -281,17 +281,17 @@
             #return         [ #scope:new ]
         ]
 
-        method [ [ #single identifier ] [ #single parameters ] [ #single position ]
+        function [ [ #single identifier ] [ #single parameters ] [ #single position ]
 
-            @ make sure the invoked method is valid
-            #if             [ #data #not_contains ] [ #method:indent:valid_methods ] [ #scope:identifier ]
-            #print_line     [ #root:color:red ] [ #data "\ninvalid method " ] [ #scope:identifier ] [ #root:color:none ]
-            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:position ]
+            @ make sure the invoked function is valid
+            #if             [ #data #not_contains ] [ #function:indent:valid_functions ] [ #scope:identifier ]
+            #print_line     [ #root:color:red ] [ #data "\ninvalid function " ] [ #scope:identifier ] [ #root:color:none ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:position ]
             #print_line
-            #error          [ #scope:identifier ] [ #data " is not a valid compiler method" ]
+            #error          [ #scope:identifier ] [ #data " is not a valid compiler function" ]
             #end
 
-            @ invoke the specified compiler method
+            @ invoke the specified compiler function
             #keyword        [ #scope:identifier ]
             #invoke         [ #last ] [ #scope:parameters ]
             #return         [ #last ]
@@ -329,11 +329,11 @@
             #not            [ #last ]
             #return         [ #last ]
 
-            @ internal method
-            #else           [ #data #present ] [ #scope:self ] [ #data method ]
+            @ internal function
+            #else           [ #data #present ] [ #scope:self ] [ #data function ]
             #pass           [ #scope:self:parameters ] [ #scope:checking ]
-            #call           [ #method:indent:collect ] [ #last ]
-            #call           [ #method:indent:method ] [ #scope:self:method ] [ #last ] [ #scope:self:#position:method ]
+            #call           [ #function:indent:collect ] [ #last ]
+            #call           [ #function:indent:function ] [ #scope:self:function ] [ #last ] [ #scope:self:#position:function ]
             #return         [ #last ]
 
             @ entries that resolve themselves
@@ -347,7 +347,7 @@
 
             @ if debug is enabled, print the current pass
             #if             [ #data #true ] [ #root:debug ]
-            #call           [ #method:print_pass ] [ #data "indent" ]
+            #call           [ #function:print_pass ] [ #data "indent" ]
             #end
 
             @ if present, pass the sections

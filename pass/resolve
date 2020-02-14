@@ -1,4 +1,4 @@
-#method {
+#function {
 
     resolve {
 
@@ -123,7 +123,7 @@
             #error          [ #data "unknown label " ] [ #scope:self:name ]
             #end
             #index          [ #build:labels ] [ #scope:self:name ]
-            #call           [ #method:resolve:allocate_operant ] [ #scope:offset ] [ #last:1 ]
+            #call           [ #function:resolve:allocate_operant ] [ #scope:offset ] [ #last:1 ]
             #return         [ #last ]
             #else           [ #data #present ] [ #scope:self ] [ #data sublabel ]
             #index          [ #build:labels ] [ #build:active_label ]
@@ -131,14 +131,14 @@
             #error          [ #data "unknown sublabel " ] [ #scope:self:sublabel ]
             #end
             #index          [ #last:2 ] [ #scope:self:sublabel ]
-            #call           [ #method:resolve:allocate_operant ] [ #scope:offset ] [ #last ]
+            #call           [ #function:resolve:allocate_operant ] [ #scope:offset ] [ #last ]
             #return         [ #last ]
             #else           [ #data #present ] [ #scope:self ] [ #data register ]
             #pass           [ #scope:self:register ] [ #data !false ]
             #return         [ #last ]
             #else
-            #call           [ #method:resolve:convert_value ] [ #scope:self:value ]
-            #call           [ #method:resolve:allocate_operant ] [ #scope:offset ] [ #last ]
+            #call           [ #function:resolve:convert_value ] [ #scope:self:value ]
+            #call           [ #function:resolve:allocate_operant ] [ #scope:offset ] [ #last ]
             #return         [ #last ]
             #end
         ]
@@ -230,13 +230,13 @@
         ]
 
         code_section [ [ #single self ]
-            #call           [ #method:resolve:section ] [ #scope:self ]
+            #call           [ #function:resolve:section ] [ #scope:self ]
             #return         [ #scope:self ]
         ]
 
         memory_section [ [ #single self ]
             #if             [ #data #not_zero ] [ #build:counter:memory ]
-            #call           [ #method:resolve:section ] [ #scope:self ]
+            #call           [ #function:resolve:section ] [ #scope:self ]
             #end
             #return         [ #scope:self ]
         ]
@@ -268,9 +268,9 @@
             #if             [ #data #keyword ] [ #scope:iterator:instance:1 ]
             #if             [ #data #present ] [ #scope ] [ #data default_mapped ]
             #print_line     [ #root:color:red ] [ #data "\nprevious relocation of default" ] [ #root:color:none ]
-            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:default_mapped ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:default_mapped ]
             #print_line     [ #root:color:red ] [ #data "\nrelocated again here" ] [ #root:color:none ]
-            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:iterator:instance:2 ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:iterator:instance:2 ]
             #print_line
             #error          [ #data "default " ] [ #scope:type ] [ #data " section may only be mapped once" ]
             #end
@@ -282,7 +282,7 @@
             #if             [ #data #equals ] [ #scope:iterator:selector ] [ #data 1 ]
             #if             [ #data #smaller ] [ #scope:iterator:instance:1 ] [ #scope:position ]
             #print_line     [ #root:color:red ] [ #data "\noverlap at address " ] [ #scope:iterator:instance:1 ] [ #root:color:none ]
-            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:iterator:instance:2 ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:iterator:instance:2 ]
             #print_line
             #error          [ #scope:type ] [ #data " sections may not overlap" ]
             #end
@@ -307,9 +307,9 @@
             @ make sure that the section has not been mapped before
             #if             [ #data #present ] [ #scope:section ] [ #data mapped ]
             #print_line     [ #root:color:red ] [ #data "\nprevious relocation of " ] [ #scope:iterator:instance:1 ] [ #root:color:none ]
-            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:section:mapped ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:section:mapped ]
             #print_line     [ #root:color:red ] [ #data "\nrelocated again here" ] [ #root:color:none ]
-            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:iterator:instance:2 ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:iterator:instance:2 ]
             #print_line
             #error          [ #scope:type ] [ #data " sections may only be mapped once" ]
             #end
@@ -330,7 +330,7 @@
             #if             [ #data #equals ] [ #scope:confirmed ] [ #data !false ]
             #if             [ #data #not_keyword ] [ #scope:iterator:instance:1 ]
             #print_line     [ #root:color:red ] [ #data "\nunknown " ] [ #scope:type ] [ #data " section " ]  [ #scope:iterator:instance:1 ] [ #root:color:none ]
-            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:iterator:instance:2 ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:iterator:instance:2 ]
             #print_line
             #error          [ #data "known " ] [ #scope:type ] [ #data " sections are: TODO" ]
             #end
@@ -378,9 +378,9 @@
 
             @
             #print_line     [ #root:color:red ] [ #data "\nprevious driver of " ] [ #scope:resource ] [ #root:color:none ]
-            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:previous:position ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:previous:position ]
             #print_line     [ #root:color:red ] [ #data "\nsecond driver here" ] [ #root:color:none ]
-            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:position ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:position ]
             #print_line
 
             @
@@ -436,7 +436,7 @@
             #set            [ #data position ] [ #build:counter:full_register ]
 
             @
-            #call           [ #method:resolve:increment ] [ #data full_register ]
+            #call           [ #function:resolve:increment ] [ #data full_register ]
             #end
 
             @
@@ -445,7 +445,7 @@
             #set            [ #data entry ] [ #last ]
 
             @
-            #call           [ #method:resolve:increment ] [ #data register ]
+            #call           [ #function:resolve:increment ] [ #data register ]
             #end
             #end
             #end
@@ -488,10 +488,10 @@
             #modify         [ #scope:path ] [ #last ]
 
             @
-            #call           [ #method:resolve:increment ] [ #scope:type ]
-            #call           [ #method:resolve:increment ] [ #data register ]
+            #call           [ #function:resolve:increment ] [ #scope:type ]
+            #call           [ #function:resolve:increment ] [ #data register ]
             #if             [ #data #true ] [ #scope:full ]
-            #call           [ #method:resolve:increment ] [ #data full_register ]
+            #call           [ #function:resolve:increment ] [ #data full_register ]
             #end
             #end
         ]
@@ -500,7 +500,7 @@
 
             @ if debug is enabled, print the current pass
             #if             [ #data #true ] [ #root:debug ]
-            #call           [ #method:print_pass ] [ #data "resolve" ]
+            #call           [ #function:print_pass ] [ #data "resolve" ]
             #end
 
             @ create register counters and necessary maps
@@ -521,7 +521,7 @@
 
             @ debug message
             #if             [ #data #true ] [ #root:debug ]
-            #call           [ #method:print:debug ] [ #data "creating module lookup" ]
+            #call           [ #function:print:debug ] [ #data "creating module lookup" ]
             #end
 
             @ create module lookup
@@ -531,32 +531,32 @@
 
             @ memory, operant or data register
             #if             [ #data #equals ] [ #last:instance:1 ] [ #data #memory ]
-            #call           [ #method:resolve:register_entry ] [ #data memory ] [ #last:instance:2 ] [ #data !true ]
+            #call           [ #function:resolve:register_entry ] [ #data memory ] [ #last:instance:2 ] [ #data !true ]
             #else           [ #data #equals ] [ #last:instance:1 ] [ #data #operant ]
-            #call           [ #method:resolve:register_entry ] [ #data operant ] [ #last:instance:2 ] [ #data !false ]
+            #call           [ #function:resolve:register_entry ] [ #data operant ] [ #last:instance:2 ] [ #data !false ]
             #else           [ #data #equals ] [ #last:instance:1 ] [ #data #data ]
-            #call           [ #method:resolve:register_entry ] [ #data data ] [ #last:instance:2 ] [ #data !true ]
+            #call           [ #function:resolve:register_entry ] [ #data data ] [ #last:instance:2 ] [ #data !true ]
 
             @ module
             #else
-            #call           [ #method:resolve:module_entry ] [ #last:instance:1 ] [ #last:instance:2 ] [ #last:instance:3 ]
+            #call           [ #function:resolve:module_entry ] [ #last:instance:1 ] [ #last:instance:2 ] [ #last:instance:3 ]
             #end
             #end
 
             @ debug message
             #if             [ #data #true ] [ #root:debug ]
-            #call           [ #method:print:debug ] [ #data "relocating code and memory sections" ]
+            #call           [ #function:print:debug ] [ #data "relocating code and memory sections" ]
             #end
 
             @ remap the code and memory sections (if there are any)
             #if             [ #data #present ] [ #scope:self ] [ #data sections ]
-            #call           [ #method:resolve:remap ] [ #scope:self ] [ #data code ]
-            #call           [ #method:resolve:remap ] [ #last ] [ #data memory ]
+            #call           [ #function:resolve:remap ] [ #scope:self ] [ #data code ]
+            #call           [ #function:resolve:remap ] [ #last ] [ #data memory ]
             #modify         [ #data #scope:self ] [ #last ]
 
             @ debug message
             #if             [ #data #true ] [ #root:debug ]
-            #call           [ #method:print:debug ] [ #data "relocating labels and sublabels" ]
+            #call           [ #function:print:debug ] [ #data "relocating labels and sublabels" ]
             #end
 
             @ relocate labels and sublabels
@@ -589,13 +589,13 @@
 
             @ debug message
             #if             [ #data #true ] [ #root:debug ]
-            #call           [ #method:format:tag ] [ #root:color:magenta ] [ #data "! TODO !" ]
-            #call           [ #method:print:debug ] [ #last ] [ #data " compress micro instructions" ]
+            #call           [ #function:format:tag ] [ #root:color:magenta ] [ #data "! TODO !" ]
+            #call           [ #function:print:debug ] [ #last ] [ #data " compress micro instructions" ]
             #end
 
             @ debug message
             #if             [ #data #true ] [ #root:debug ]
-            #call           [ #method:print:debug ] [ #data "creating empty memory" ]
+            #call           [ #function:print:debug ] [ #data "creating empty memory" ]
             #end
 
             @ create default memory image and instructions
@@ -625,13 +625,13 @@
 
             @ display warning if the core has no code
             #else
-            #call           [ #method:print:warning ] [ #data "no executable code specified, core might not do anything" ]
+            #call           [ #function:print:warning ] [ #data "no executable code specified, core might not do anything" ]
             #end
 
             @ display a warning if we have something in memory but dont have memory registers
             #if             [ #data #zero ] [ #build:counter:memory ]
             #if             [ #data #not_zero ] [ #scope:self:memory_size ]
-            #call           [ #method:print:warning ] [ #data "program has data in memory but no memory registers to access it" ]
+            #call           [ #function:print:warning ] [ #data "program has data in memory but no memory registers to access it" ]
             #end
 
             @ create memory slots containing 0
