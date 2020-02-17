@@ -33,12 +33,8 @@ directory {
 
         @ set output file
         #if             [ #data #equals ] [ #last ] [ #data "-o" ]
-        #if             [ #data #not_bigger ] [ #scope:count ] [ #scope:index ]
-        #error          [ #data "expected output file" ]
-        #end
-        #if             [ #data #present ] [ #scope ] [ #data output_set ]
-        #error          [ #data "output file may only be spceified once" ]
-        #end
+        #ensure         [ #data #bigger ] [ #scope:count ] [ #scope:index ] [ #data "expected output file" ]
+        #ensure         [ #data #not_present ] [ #scope ] [ #data output_set ] [ #data "output file may only be spceified once" ]
         #set            [ #data output_set ] [ #data !true ]
         #add            [ #scope:index ] [ #data 1 ]
         #set            [ #data index ] [ #last ]
@@ -47,9 +43,7 @@ directory {
 
         @ enable debug
         #else           [ #data #equals ] [ #last ] [ #data "-d" ]
-        #if             [ #data #present ] [ #scope ] [ #data debug_set ]
-        #error          [ #data "debug flag may only be set once" ]
-        #end
+        #ensure         [ #data #not_present ] [ #scope ] [ #data debug_set ] [ #data "debug flag may only be set once" ]
         #set            [ #data debug_set ] [ #data !true ]
         #modify         [ #data #scope:configuration:debug ] [ #data !true ]
 
@@ -57,9 +51,7 @@ directory {
         #else
         #set            [ #data file ] [ #last ]
         #index          [ #scope:file ] [ #data 1 ]
-        #if             [ #data #equals ] [ #last ] [ #data '-' ]
-        #error          [ #data "invalid flag " ] [ #scope:file ]
-        #end
+        #ensure         [ #data #not_equals ] [ #last ] [ #data '-' ] [ #data "invalid flag " ] [ #scope:file ]
         #insert         [ #scope:configuration:files ] [ #data -1 ] [ #scope:file ]
         #modify         [ #data #scope:configuration:files ] [ #last ]
         #end
@@ -105,9 +97,7 @@ directory {
         #end
 
         @ ensure that there are files to be compiled
-        #if             [ #data #empty ] [ #scope:configuration:files ]
-        #error          [ #data "no files for compilation provided" ]
-        #end
+        #ensure         [ #data #not_empty ] [ #scope:configuration:files ] [ #data "no files for compilation provided" ]
 
         @ debug message
         #if             [ #data #true ] [ #scope:configuration:debug ]
