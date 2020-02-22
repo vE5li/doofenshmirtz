@@ -2,7 +2,7 @@ core            [ tokenizer parser builder ]
 
 dependencies    [ format file color debug position ]
 
-pipeline        [ define indent register resolve generate ]
+pipeline        [ define indent register resolve reduce generate ]
 
 project {
     name            "h0vs"
@@ -22,7 +22,7 @@ directory {
     process_arguments [ [ #single arguments ]
 
         @ create configuration and index
-        #set            [ #data configuration ] [ #data { files [] debug !false output "output.uni" } ]
+        #set            [ #data configuration ] [ #data { files [ ] debug !false output "output.uni" } ]
         #length         [ #scope:arguments ]
         #set            [ #data count ] [ #last ]
         #set            [ #data index ] [ #data 1 ]
@@ -52,7 +52,7 @@ directory {
         #set            [ #data file ] [ #last ]
         #index          [ #scope:file ] [ #data 1 ]
         #ensure         [ #data #not_equals ] [ #last ] [ #data '-' ] [ #data "invalid flag " ] [ #scope:file ]
-        #insert         [ #scope:configuration:files ] [ #data -1 ] [ #scope:file ]
+        #append         [ #scope:configuration:files ] [ #scope:file ]
         #modify         [ #data #scope:configuration:files ] [ #last ]
         #end
 
@@ -104,8 +104,8 @@ directory {
         #call           [ #function:print:debug ] [ #data "libraries loaded" ]
         #end
 
-        @
-        #set            [ #data pass_handlers ] [ #data {} ]
+        @ create pass hanlers for common top
+        #set            [ #data pass_handlers ] [ #data { } ]
         #iterate        [ #root:pipeline ]
         #set            [ #data pass ] [ #last:instance ]
         #path           [ #scope:pass ] [ #data top ]
@@ -115,8 +115,8 @@ directory {
         #end
 
         @ tokenize and parse all source files
-        #set            [ #data sections ] [ #data [] ]
-        #set            [ #data positions ] [ #data [] ]
+        #set            [ #data sections ] [ #data [ ] ]
+        #set            [ #data positions ] [ #data [ ] ]
         #iterate        [ #scope:configuration:files ]
         #compile_file   [ #scope:compiler ] [ #last:instance ]
         #if             [ #data #present ] [ #last ] [ #data sections ]
@@ -128,7 +128,7 @@ directory {
         #end
         #end
 
-        @
+        @ create new common top
         #map            [ #data sections ] [ #scope:positions ]
         #map            [ #data #pass ] [ #scope:pass_handlers ] [ #data #position ] [ #last ] [ #data sections ] [ #scope:sections ]
         #set            [ #data top ] [ #last ]
@@ -150,7 +150,7 @@ directory {
         #call           [ #function:print:debug ] [ #last ] [ #data " loading " ] [ #scope:pass ]
         #end
 
-        @
+        @ load pass from file
         #string         [ #root:directory:pass ] [ #scope:pass ]
         #read_map       [ #last ]
         #merge          [ #scope:compiler ] [ #last ]
@@ -162,8 +162,8 @@ directory {
         #call           [ #function:print:debug ] [ #data "loading the module list" ]
         #end
 
-        @ load the module index and build the parsed files
-        #string         [ #root:directory:module ] [ #data "index" ]
+        @ load the module descriptions and build the parsed files
+        #string         [ #root:directory:module ] [ #data "description" ]
         #read_map       [ #last ]
         #merge          [ #scope:compiler ] [ #last ]
         #insert         [ #last ] [ #data module_directory ] [ #root:directory:module ]
@@ -174,7 +174,7 @@ directory {
         #call           [ #function:print:debug ] [ #data "building top" ]
         #end
 
-        @
+        @ compile parsed files
         #build          [ #scope:compiler ] [ #scope:top ]
         #set            [ #data build ] [ #last ]
 
@@ -193,64 +193,70 @@ directory {
         @ output debug information if the user input is yes
         #if             [ #data #true ] [ #scope:configuration:debug ]
         #call           [ #function:format:tag ] [ #root:color:magenta ] [ #data "debug" ]
-        #print          [ #last ] [ #data " print build map? (yes, " ] [ #root:color:magenta ] [ #data "no" ] [ #root:color:none ] [ #data ") " ]
+        #print          [ #last ] [ #data " print build map? (y, N) " ]
         #flush
         #input
-        #if             [ #data #equals ] [ #last ] [ #data "yes" ]
+        #if             [ #data #equals ] [ #last ] [ #data "y" ]
         #call           [ #function:output_debug ] [ #scope:build ]
         #end
         #end
 
         @ print the compilation time
-        #call           [ #function:print:success ] [ #data "completed in " ] [ #scope:duration ] [ #data "s"]
+        #string         [ #scope:duration ]
+        #slice          [ #last ] [ #data 1 ] [ #data 3 ]
+        #call           [ #function:print:success ] [ #data "completed in " ] [ #last ] [ #data "s"]
     ]
 
     output_debug [ [ #single build ]
 
         @ final sections that will be placed in memory
-        #call           [ #function:format:serialize ] [ #scope:build:bytecode ] [ #data "" ]
+        #call           [ #function:format:serialize ] [ #scope:build:bytecode ]
         #print_line     [ #root:color:magenta ] [ #data "build:bytecode " ] [ #root:color:none ] [ #last ]
-        #call           [ #function:format:serialize ] [ #scope:build:operants ] [ #data "" ]
+        #call           [ #function:format:serialize ] [ #scope:build:operants ]
         #print_line     [ #root:color:magenta ] [ #data "build:operants " ] [ #root:color:none ] [ #last ]
-        #call           [ #function:format:serialize ] [ #scope:build:memory ] [ #data "" ]
+        #call           [ #function:format:serialize ] [ #scope:build:memory ]
         #print_line     [ #root:color:magenta ] [ #data "build:memory " ] [ #root:color:none ] [ #last ]
 
-        @ number of registers instanciated
-        #print_line     [ #root:color:magenta ] [ #data "build:counter:operant " ] [ #root:color:none ] [ #scope:build:counter:operant ]
-        #print_line     [ #root:color:magenta ] [ #data "build:counter:memory " ] [ #root:color:none ] [ #scope:build:counter:memory ]
-        #print_line     [ #root:color:magenta ] [ #data "build:counter:register " ] [ #root:color:none ] [ #scope:build:counter:register ]
-        #print_line     [ #root:color:magenta ] [ #data "build:counter:full_register " ] [ #root:color:none ] [ #scope:build:counter:full_register ]
-
         @ core modules in the same order that they are in the core
-        #call           [ #function:format:serialize ] [ #scope:build:modules ] [ #data "" ]
+        #call           [ #function:format:serialize ] [ #scope:build:modules ]
         #print_line     [ #root:color:magenta ] [ #data "build:modules " ] [ #root:color:none ] [ #last ]
-        #call           [ #function:format:serialize ] [ #scope:build:driven ] [ #data "" ]
+        #call           [ #function:format:serialize ] [ #scope:build:resolved_modules ]
+        #print_line     [ #root:color:magenta ] [ #data "build:resolved_modules " ] [ #root:color:none ] [ #last ]
+
+        @ module lookup table and drivers
+        #call           [ #function:format:serialize ] [ #scope:build:module_lookup ]
+        #print_line     [ #root:color:magenta ] [ #data "build:module_lookup " ] [ #root:color:none ] [ #last ]
+        #call           [ #function:format:serialize ] [ #scope:build:driven ]
         #print_line     [ #root:color:magenta ] [ #data "build:driven " ] [ #root:color:none ] [ #last ]
 
-        @ lookup tables for modules and directives
-        #call           [ #function:format:serialize ] [ #scope:build:module_lookup ] [ #data "" ]
-        #print_line     [ #root:color:magenta ] [ #data "build:module_lookup " ] [ #root:color:none ] [ #last ]
+        @ module counters and micro instruction widths
+        #call           [ #function:format:serialize ] [ #scope:build:counter ]
+        #print_line     [ #root:color:magenta ] [ #data "build:counter " ] [ #root:color:none ] [ #last ]
+        #call           [ #function:format:serialize ] [ #scope:build:micro_instruction_width ]
+        #print_line     [ #root:color:magenta ] [ #data "build:micro_instruction_width " ] [ #root:color:none ] [ #last ]
+
+        @ directives
         #call           [ #function:format:level ] [ #scope:build:directives ] [ #data 80 ]
         #print_line     [ #root:color:magenta ] [ #data "build:directives " ] [ #root:color:none ] [ #last ]
 
         @ memory map (if present)
         #if             [ #data #present ] [ #scope:build ] [ #data memory_map ]
-        #call           [ #function:format:serialize ] [ #scope:build:memory_map ] [ #data "" ]
+        #call           [ #function:format:serialize ] [ #scope:build:memory_map ]
         #print_line     [ #root:color:magenta ] [ #data "build:memory_map " ] [ #root:color:none ] [ #last ]
         #end
 
         @ code map (if present)
         #if             [ #data #present ] [ #scope:build ] [ #data code_map ]
-        #call           [ #function:format:serialize ] [ #scope:build:code_map ] [ #data "" ]
+        #call           [ #function:format:serialize ] [ #scope:build:code_map ]
         #print_line     [ #root:color:magenta ] [ #data "build:code_map " ] [ #root:color:none ] [ #last ]
         #end
 
         @ sections and section labels
-        #call           [ #function:format:serialize ] [ #scope:build:code_sections ] [ #data "" ]
+        #call           [ #function:format:serialize ] [ #scope:build:code_sections ]
         #print_line     [ #root:color:magenta ] [ #data "build:code_sections " ] [ #root:color:none ] [ #last ]
-        #call           [ #function:format:serialize ] [ #scope:build:memory_sections ] [ #data "" ]
+        #call           [ #function:format:serialize ] [ #scope:build:memory_sections ]
         #print_line     [ #root:color:magenta ] [ #data "build:memory_sections " ] [ #root:color:none ] [ #last ]
-        #call           [ #function:format:serialize ] [ #scope:build:labels ] [ #data "" ]
+        #call           [ #function:format:serialize ] [ #scope:build:labels ]
         #print_line     [ #root:color:magenta ] [ #data "build:labels " ] [ #root:color:none ] [ #last ]
 
         @ entire compiler

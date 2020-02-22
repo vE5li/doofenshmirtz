@@ -1,11 +1,11 @@
-component BusRegister(in clock, in bus[#bus_range], in selector[#selector_range(1)], out destination[#bit_range(1)]) {
+component BusRegister<count>(in clock, in selector[#selector(#count)], in source[#source(#count)], out destination[#register]) {
     Register buffer := 0
     Register data := 0
     destination := data
 
     on rising clock {
-        if selector != 0 {
-            buffer := bus[#bit_width +:: selector * #bit_width]
+        if #count > 0 && &selector == 0 {
+            buffer := source[#bit_width +:: selector * #bit_width]
         }
     }
 
@@ -14,15 +14,15 @@ component BusRegister(in clock, in bus[#bus_range], in selector[#selector_range(
     }
 }
 
-component BufferedBusRegister(in clock, in bus[#bus_range], in selector[#selector_range(1)], out internal[#bit_range(1)], out destination[#bit_range(1)]) {
+component BufferedBusRegister<count>(in clock, in selector[#selector(#count)], in source[#source(#count)], out destination[#register], out internal[#register]) {
     Register buffer := 0
     Register data := 0
     internal := buffer
     destination := data
 
     on rising clock {
-        if &selector == 0 {
-            buffer := bus[#bit_width +:: selector * #bit_width]
+        if #count > 0 && &selector == 0 {
+            buffer := source[#bit_width +:: selector * #bit_width]
         }
     }
 
@@ -31,13 +31,13 @@ component BufferedBusRegister(in clock, in bus[#bus_range], in selector[#selecto
     }
 }
 
-component InstructionModule(in clock, in bus[#bus_range], in selector[#selector_range(2)], out destination[#bit_range(3)], out program_counter[counter_range]) {
+component InstructionModule<count0, count1>(in clock, in selector0[#selector(#count0)], in selector1[#selector(#count1)], in source0[#source(#count0)], in source1[#source(#count1)], out destination[#register][0:3], out program_counter[#counter_width:0]) {
     Register buffer0 := 0
     Register buffer1 := 0
     Register buffer2 := 0
-    destinations[#bits(0)] := data0
-    destinations[#bits(1)] := data1
-    destinations[#bits(2)] := data2
+    destination[0] := data0
+    destination[1] := data1
+    destination[2] := data2
     program_counter := buffer2
 
     on falling clock {
@@ -47,12 +47,12 @@ component InstructionModule(in clock, in bus[#bus_range], in selector[#selector_
     }
 
     on rising clock {
-        if &selectors[#bits(0)] == 0 {
-            buffer0 := bus[selectors[#bit_width +:: #bits(0)] * #bit_width]
+        if #count0 > 0 && &selector0 == 0 {
+            buffer0 := source0[#bit_width +:: selector0 * #bit_width]
         }
 
-        if &selectors[#bits(1)] == 0 {
-            buffer1 := bus[selectors[#bit_width +:: #bits(1)] * #bit_width]
+        if #count1 > 0 && &selector1 == 0 {
+            buffer1 := source1[#bit_width +:: selector1 * #bit_width]
         }
 
         if buffer1 != 0 {

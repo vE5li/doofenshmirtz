@@ -1,207 +1,217 @@
 #function {
 
+    @ move this somewhere else
+    convert_value [ [ #single value ]
+
+        @ integer
+        #if             [ #data #integer ] [ #scope:value ]
+        #return         [ #scope:value ]
+
+        @ float
+        #else           [ #data #float ] [ #scope:value ]
+        #error          [ #data "implement floats" ]
+        @#return         [ #scope:value ]
+
+        @ character
+        #else           [ #data #character ] [ #scope:value ]
+        #integer        [ #scope:value ]
+        #return         [ #last ]
+
+        @ true
+        #else           [ #data #true ] [ #scope:value ]
+        #return         [ #data -1 ]
+
+        @ false
+        #else           [ #data #false ] [ #scope:value ]
+        #return         [ #data 0 ]
+
+        @ invalid
+        #else
+        #type           [ #scope:value ]
+        #error          [ #last ] [ #data " may not be moved into a register" ]
+        #end
+    ]
+
     resolve {
 
-        label [ [ #single self ] [ #single ]
+        label [ [ #single self ]
 
-            @
+            @ set the active label and return unchanged self
             #if             [ #data #present ] [ #scope:self ] [ #data name ]
             #modify         [ #data #build:active_label ] [ #scope:self:name ]
             #end
-            #return         [ #data 0 ]
-        ]
-
-        instance [ [ #single self ] [ #single offset ]
-
-            @
-            #if             [ #data #equals ] [ #scope:self:type ] [ #data space ]
-            #return         [ #scope:self:value ]
-            #else           [ #data #equals ] [ #scope:self:type ] [ #data integer ]
-            #if             [ #data #present ] [ #scope:self ] [ #data identifier ]
-            #if             [ #data #not_present ] [ #build:labels ] [ #scope:self:identifier ]
-            #error          [ #data "unknown label " ] [ #scope:self:identifier ]
-            #end
-            #index          [ #build:labels ] [ #scope:self:identifier ]
-            #overwrite      [ #build:memory ] [ #scope:offset ] [ #last:1 ]
-            #modify         [ #data #build:memory ] [ #last ]
-            #else
-            #overwrite      [ #build:memory ] [ #scope:offset ] [ #scope:self:value ]
-            #modify         [ #data #build:memory ] [ #last ]
-            #end
-            #return         [ #data 1 ]
-            #else           [ #data #equals ] [ #scope:self:type ] [ #data string ]
-            #iterate        [ #scope:self:value ]
-            #set            [ #data iterator ] [ #last ]
-            #add            [ #scope:iterator:selector ] [ #scope:offset ] [ #data -1 ]
-            #overwrite      [ #build:memory ] [ #last ] [ #scope:iterator:instance ]
-            #modify         [ #data #build:memory ] [ #last ]
-            #end
-            #length         [ #scope:self:value ]
-            #return         [ #last ]
-            #else           [ #data #equals ] [ #scope:self:type ] [ #data character ]
-            #overwrite      [ #build:memory ] [ #scope:offset ] [ #scope:self:value ]
-            #modify         [ #data #build:memory ] [ #last ]
-            #return         [ #data 1 ]
-            #else           [ #data #equals ] [ #scope:self:type ] [ #data float ]
-            #error          [ #data "implement floats" ]
-            @#overwrite      [ #build:memory ] [ #scope:offset ] [ #scope:self:value ]
-            @#modify         [ #data #build:memory ] [ #last ]
-            #return         [ #data 1 ]
-            #end
-        ]
-
-        allocate_operant [ [ #single offset ] [ #single instance ]
-
-            @
-            #path           [ #data #build:operants ] [ #scope:offset ]
-            #set            [ #data path ] [ #last ]
-            #resolve        [ #scope:path ]
-            #set            [ #data entry ] [ #last ]
-
-            @
-            #iterate        [ #scope:entry ]
-            #set            [ #data iterator ] [ #last ]
-            #if             [ #data #equals ] [ #scope:iterator:instance ] [ #data none ]
-            #overwrite      [ #scope:entry ] [ #scope:iterator:selector ] [ #scope:instance ]
-            #modify         [ #scope:path ] [ #last ]
-
-            @
-            #subtract       [ #scope:iterator:selector ] [ #data 1 ]
-            #identifier     [ #data slot ] [ #last ]
-            #index          [ #build:module_lookup:operant ] [ #last ]
-            #return         [ #last:1 ]
-            #else           [ #data #equals ] [ #scope:iterator:instance ] [ #scope:instance ]
-            #subtract       [ #scope:iterator:selector ] [ #data 1 ]
-            #identifier     [ #data slot ] [ #last ]
-            #index          [ #build:module_lookup:operant ] [ #last ]
-            #return         [ #last:1 ]
-            #end
-            #end
-
-            @ TODO: update to use position
-            #if             [ #data #zero ] [ #build:counter:operant ]
-            #error          [ #data "immediates can not be moved since the core does not have any operant registers" ]
-            #else
-            #error          [ #data "only " ] [ #build:counter:operant ] [ #data " different immediates may be moved per instruction" ]
-            #end
-        ]
-
-        convert_value [ [ #single value ]
-
-            @ integer
-            #if             [ #data #integer ] [ #scope:value ]
-            #return         [ #scope:value ]
-
-            @ float
-            #else           [ #data #float ] [ #scope:value ]
-            #error          [ #data "implement floats" ]
-            @#return         [ #scope:value ]
-
-            @ character
-            #else           [ #data #character ] [ #scope:value ]
-            #integer        [ #scope:value ]
-            #return         [ #last ]
-
-            @ true
-            #else           [ #data #true ] [ #scope:value ]
-            #return         [ #data 4294967295 ]
-
-            @ false
-            #else           [ #data #false ] [ #scope:value ]
-            #return         [ #data 0 ]
-
-            @ invalid
-            #else
-            #type           [ #scope:value ]
-            #error          [ #last ] [ #data " may not be moved into a register" ]
-            #end
-        ]
-
-        source [ [ #single self ] [ #single offset ]
-            #if             [ #data #present ] [ #scope:self ] [ #data name ]
-            #if             [ #data #not_present ] [ #build:labels ] [ #scope:self:name ]
-            #error          [ #data "unknown label " ] [ #scope:self:name ]
-            #end
-            #index          [ #build:labels ] [ #scope:self:name ]
-            #call           [ #function:resolve:allocate_operant ] [ #scope:offset ] [ #last:1 ]
-            #return         [ #last ]
-            #else           [ #data #present ] [ #scope:self ] [ #data sublabel ]
-            #index          [ #build:labels ] [ #build:active_label ]
-            #if             [ #data #not_present ] [ #last:2 ] [ #scope:self:sublabel ]
-            #error          [ #data "unknown sublabel " ] [ #scope:self:sublabel ]
-            #end
-            #index          [ #last:2 ] [ #scope:self:sublabel ]
-            #call           [ #function:resolve:allocate_operant ] [ #scope:offset ] [ #last ]
-            #return         [ #last ]
-            #else           [ #data #present ] [ #scope:self ] [ #data register ]
-            #pass           [ #scope:self:register ] [ #data !false ]
-            #return         [ #last ]
-            #else
-            #call           [ #function:resolve:convert_value ] [ #scope:self:value ]
-            #call           [ #function:resolve:allocate_operant ] [ #scope:offset ] [ #last ]
-            #return         [ #last ]
-            #end
-        ]
-
-        register [ [ #single self ] [ #single moveable ]
-
-            @
-            #if             [ #data #not_present ] [ #build:module_lookup ] [ #scope:self:steps:1:part ]
-            #error          [ #data "invalid register group " ] [ #scope:self:steps:1:part ]
-            #end
-
-            @
-            #index          [ #build:module_lookup ] [ #scope:self:steps:1:part ]
-            #set            [ #data group ] [ #last ]
-
-            @
-            #if             [ #data #not_present ] [ #scope:group ] [ #scope:self:steps:2:part ]
-            #error          [ #data "group " ] [ #scope:self:steps:1:part ] [ #data " does not have a register called " ] [ #scope:self:steps:2:part ]
-            #end
-
-            @
-            #index          [ #scope:group ] [ #scope:self:steps:2:part ]
-            #set            [ #data register ] [ #last ]
-
-            @
-            #if             [ #data #true ] [ #scope:moveable ]
-            #if             [ #data #equals ] [ #scope:register:2 ] [ #data none ]
-            #error          [ #scope:self:steps:1:part ] [ #data ":" ] [ #scope:self:steps:2:part ] [ #data " may not be written to" ]
-            #end
-            #add            [ #scope:register:2 ] [ #data 1 ]
-            #return         [ #last ]
-            #end
-
-            #return         [ #scope:register:1 ]
-        ]
-
-        move [ [ #single self ] [ #single offset ]
-
-            @
-            #pass           [ #scope:self:source ] [ #scope:offset ]
-            #set            [ #data source ] [ #last ]
-            #pass           [ #scope:self:register ] [ #data !true ]
-            #set            [ #data register ] [ #last ]
-
-            @
-            #path           [ #data #build:bytecode ] [ #scope:offset ]
-            #set            [ #data path ] [ #last ]
-            #resolve        [ #scope:path ]
-            #overwrite      [ #last ] [ #scope:register ] [ #scope:source ]
-            #modify         [ #scope:path ] [ #last ]
             #return         [ #scope:self ]
         ]
 
-        instruction [ [ #single self ] [ #single offset ]
-            #if             [ #data #present ] [ #scope:self ] [ #data moves ]
-            #pass           [ #scope:self:moves ] [ #scope:offset ]
+        allocate_operant [ [ #single operants ] [ #single instance ] [ #single position ]
+
+            @ make sure that operants are accessable
+            #if             [ #data #zero ] [ #build:counter:operant ]
+            #print_line     [ #root:color:red ] [ #data "\ninvalid immediate" ] [ #root:color:none ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:position ]
+            #print_line
+            #error          [ #data "immediates can not be moved since the core does not have any operant registers" ]
             #end
-            #return         [ #data 1 ]
+
+            @ if the instance is already part of the operants
+            #if             [ #data #contains ] [ #scope:operants ] [ #scope:instance ]
+            #position       [ #scope:operants ] [ #scope:instance ]
+            #subtract       [ #last:1 ] [ #data 1 ]
+            #identifier     [ #data slot ] [ #last ]
+            #path           [ #data operant ] [ #last ]
+            #map            [ #data register ] [ #last ] [ #data operants ] [ #scope:operants ]
+            #return         [ #last ]
+
+            @ if the instance is not part of the operants, make sure that there are slots left
+            #else
+            #if             [ #data #not_smaller ] [ #scope:operants ] [ #build:counter:operant ]
+            #print_line     [ #root:color:red ] [ #data "\noperant regsiter overlow" ] [ #root:color:none ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:position ]
+            #print_line
+            #error          [ #data "only " ] [ #build:counter:operant ] [ #data " different immediates may be moved per instruction" ]
+            #end
+
+            @ create path to register
+            #length         [ #scope:operants ]
+            #identifier     [ #data slot ] [ #last ]
+            #path           [ #data operant ] [ #last ]
+            #set            [ #data register ] [ #last ]
+
+            @ insert the instance into the operants list
+            #append         [ #scope:operants ] [ #scope:instance ]
+            #map            [ #data register ] [ #scope:register ] [ #data operants ] [ #last ]
+            #return         [ #last ]
+            #end
         ]
 
-        block [ [ #single self ] [ #single offset ]
-            #pass           [ #scope:self:data ] [ #scope:offset ]
+        source [ [ #single self ] [ #single operants ]
+
+            @ register
+            #if             [ #data #present ] [ #scope:self ] [ #data register ]
+            #pass           [ #scope:self:register ]
+            #map            [ #data register ] [ #last ] [ #data operants ] [ #scope:operants ]
             #return         [ #last ]
+
+            @ label, make sure it exists
+            #else           [ #data #present ] [ #scope:self ] [ #data name ]
+            #if             [ #data #not_present ] [ #build:labels ] [ #scope:self:name ]
+            #print_line     [ #root:color:red ] [ #data "\nunknown label " ] [ #scope:self:name ] [ #root:color:none ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:self:#position:name ]
+            #print_line
+            #error          [ #data "label " ] [ #scope:self:name ] [ #data " is not defined" ]
+            #end
+
+            @ make sure that the label is mapped
+            #index          [ #build:labels ] [ #scope:self:name ]
+            #if             [ #data #equals ] [ #last ] [ #data unmapped ]
+            #print_line     [ #root:color:red ] [ #data "\nunmapped label " ] [ #scope:self:name ] [ #root:color:none ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:self:#position:name ]
+            #print_line
+            #error          [ #data "only labels inside sections that are mapped have a value" ]
+            #end
+
+            @ allocate an operant register and return it
+            #call           [ #function:resolve:allocate_operant ] [ #scope:operants ] [ #last:value ] [ #scope:self:#position:name ]
+            #return         [ #last ]
+
+            @ sublabel, make sure it exists
+            #else           [ #data #present ] [ #scope:self ] [ #data sublabel ]
+            #index          [ #build:labels ] [ #build:active_label ]
+            #if             [ #data #not_present ] [ #last:sublabels ] [ #scope:self:sublabel ]
+            #print_line     [ #root:color:red ] [ #data "\nunknown sublabel " ] [ #scope:self:sublabel ] [ #root:color:none ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:self:#position:sublabel ]
+            #print_line
+            #error          [ #data "sublabel " ] [ #scope:self:sublabel ] [ #data " is not defined" ]
+            #end
+
+            @ allocate an operant register and return it
+            #index          [ #last:sublabels ] [ #scope:self:sublabel ]
+            #call           [ #function:resolve:allocate_operant ] [ #scope:operants ] [ #last ] [ #scope:self:#position:sublabel ]
+            #return         [ #last ]
+
+            @ immediate, allocate an operant register and return it
+            #else
+            #call           [ #function:convert_value ] [ #scope:self:value ]
+            #call           [ #function:resolve:allocate_operant ] [ #scope:operants ] [ #last ] [ #scope:self:#position:value ]
+            #return         [ #last ]
+            #end
+        ]
+
+        register [ [ #single self ]
+
+            @ make sure register group exists
+            #if             [ #data #not_present ] [ #build:module_lookup ] [ #scope:self:steps:1:part ]
+            #print_line     [ #root:color:red ] [ #data "\nunknown register group " ] [ #scope:self:steps:1:part ] [ #root:color:none ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:self:steps:1:position:part ]
+            #print_line
+            #error          [ #data "register group " ] [ #scope:self:sublabel ] [ #data " is not part of the core" ]
+            #end
+
+            @ get the register entry from the lookup
+            #index          [ #build:module_lookup ] [ #scope:self:steps:1:part ]
+            #set            [ #data group ] [ #last ]
+
+            @ make sure register exists
+            #if             [ #data #not_present ] [ #scope:group ] [ #scope:self:steps:2:part ]
+            #print_line     [ #root:color:red ] [ #data "\ninvalid register " ] [ #scope:self:steps:2:part ] [ #root:color:none ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:self:steps:2:position:part ]
+            #print_line
+            #error          [ #data "register " ] [ #scope:self:sublabel ] [ #data " is not part of " ] [ #scope:self:steps:1:part ]
+            #end
+
+            @ create a path to the register and return it
+            #path           [ #scope:self:steps:1:part ] [ #scope:self:steps:2:part ]
+            #return         [ #last ]
+        ]
+
+        move [ [ #single self ] [ #single operants ]
+
+            @ pass the source register
+            #pass           [ #scope:self:source ] [ #scope:operants ]
+            #set            [ #data source ] [ #last ]
+
+            @ pass the destination register
+            #pass           [ #scope:self:register ]
+            #set            [ #data register ] [ #last ]
+
+            @ get register path and register entry
+            #path           [ #data #build:module_lookup ] [ #scope:register ]
+            #set            [ #data register_path ] [ #last ]
+            #resolve        [ #scope:register_path ]
+            #set            [ #data register_entry ] [ #last ]
+
+            @ make sure that register is writable
+            #if             [ #data #not_present ] [ #scope:register_entry ] [ #data sources ]
+            #print_line     [ #root:color:red ] [ #data "\ninvalid destination " ] [ #scope:register ] [ #root:color:none ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:self:#position:register ]
+            #print_line
+            #error          [ #data "register may only be read from" ]
+            #end
+
+            @ if the source is not aleady listed, add it to the register entry
+            #if             [ #data #not_contains ] [ #scope:register_entry:sources ] [ #scope:source:register ]
+            #append         [ #scope:register_entry:sources ] [ #scope:source:register ]
+            #overwrite      [ #scope:register_entry ] [ #data sources ] [ #last ]
+            #modify         [ #scope:register_path ] [ #last ]
+            #end
+
+            @ return possibly modified operants
+            #return         [ #scope:source:operants ]
+        ]
+
+        instruction [ [ #single self ]
+
+            @ pass all moves and keep track of the used operant registers
+            #if             [ #data #present ] [ #scope:self ] [ #data moves ]
+            #set            [ #data operants ] [ #data [ ] ]
+            #iterate        [ #scope:self:moves ]
+            #pass           [ #last:instance:part ] [ #scope:operants ]
+            #set            [ #data operants ] [ #last ]
+            #end
+            #end
+
+            @ return unchanged self
+            #return         [ #scope:self ]
         ]
 
         section [ [ #single section ]
@@ -211,21 +221,13 @@
             #return         [ #scope:section ]
             #end
 
-            @
+            @ set active label to none
             #overwrite      [ #build ] [ #data active_label ] [ #data none ]
             #modify         [ #data #build ] [ #last ]
 
-            @
+            @ if present, pass all blocks
             #if             [ #data #present ] [ #scope:section ] [ #data blocks ]
-            #add            [ #scope:section:base ] [ #data 1 ]
-            #set            [ #data offset ] [ #last ]
-            #iterate        [ #scope:section:blocks ]
-
-            @
-            #pass           [ #last:instance:part ] [ #scope:offset ]
-            #add            [ #scope:offset ] [ #last ]
-            #set            [ #data offset ] [ #last ]
-            #end
+            #pass           [ #scope:section:blocks ]
             #end
         ]
 
@@ -241,134 +243,166 @@
             #return         [ #scope:self ]
         ]
 
-        remap [ [ #single self ] [ #single type ]
+        move_default [ [ #single top ] [ #single default_pool ]
 
-            @
-            #identifier     [ #scope:type ] [ #data _map ]
-            #set            [ #data index ] [ #last ]
+            @ iterate all #default sections and get their path and entry
+            #iterate        [ #scope:default_pool ]
+            #path           [ #data #scope:top:sections ] [ #last:instance ] [ #data part:data ]
+            #set            [ #data section_path ] [ #last ]
+            #resolve        [ #scope:section_path ]
+            #set            [ #data section_entry ] [ #last ]
 
-            @
-            #identifier     [ #scope:type ] [ #data _sections ]
-            #index          [ #build ] [ #last ]
-            #set            [ #data pool ] [ #last ]
-
-            @
-            #identifier     [ #scope:type ] [ #data _size ]
-            #set            [ #data size ] [ #last ]
-
-            @ if custom map is present, iterate over the chunks
-            #set            [ #data position ] [ #data 0 ]
-            #if             [ #data #present ] [ #build ] [ #scope:index ]
-            #index          [ #build ] [ #scope:index ]
-            #iterate        [ #last:chunks ]
-            #iterate        [ #last:instance ]
-            #set            [ #data iterator ] [ #last ]
-
-            @ if section is #default, make sure #default has not been mapped before
-            #if             [ #data #keyword ] [ #scope:iterator:instance:1 ]
-            #if             [ #data #present ] [ #scope ] [ #data default_mapped ]
-            #print_line     [ #root:color:red ] [ #data "\nprevious relocation of default" ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:default_mapped ]
-            #print_line     [ #root:color:red ] [ #data "\nrelocated again here" ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:iterator:instance:2 ]
-            #print_line
-            #error          [ #data "default " ] [ #scope:type ] [ #data " section may only be mapped once" ]
-            #end
-            #set            [ #data default_mapped ] [ #scope:iterator:instance:2 ]
+            @ move the #default sections
+            #insert         [ #scope:section_entry ] [ #data base ] [ #scope:top:size ]
+            #modify         [ #scope:section_path ] [ #last ]
+            #add            [ #scope:top:size ] [ #scope:section_entry:size ]
+            #modify         [ #data #scope:top:size ] [ #last ]
             #end
 
-            @ if integer is the base
-            #if             [ #data #integer ] [ #scope:iterator:instance:1 ]
-            #if             [ #data #equals ] [ #scope:iterator:selector ] [ #data 1 ]
-            #if             [ #data #smaller ] [ #scope:iterator:instance:1 ] [ #scope:position ]
-            #print_line     [ #root:color:red ] [ #data "\noverlap at address " ] [ #scope:iterator:instance:1 ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:iterator:instance:2 ]
-            #print_line
-            #error          [ #scope:type ] [ #data " sections may not overlap" ]
-            #end
-            #set            [ #data position ] [ #scope:iterator:instance:1 ]
+            @ return modified top
+            #return         [ #scope:top ]
+        ]
 
-            @ if position is an offset
-            #else
-            #add            [ #scope:position ] [ #scope:iterator:instance:1 ]
-            #set            [ #data position ] [ #last ]
-            #end
+        move_section [ [ #single top ] [ #single type ] [ #single pool ] [ #single name ] [ #single position ]
 
-            @
-            #else
-            #set            [ #data confirmed ] [ #data !false ]
-            #iterate        [ #scope:pool ]
-            #if             [ #data #equals ] [ #last:instance:1 ] [ #scope:iterator:instance:1 ]
-            #path           [ #data #scope:self:sections ] [ #last:instance:2 ] [ #data part:data ]
+            @ get section path and entry
+            #index          [ #scope:pool ] [ #scope:name ]
+            #path           [ #data #scope:top:sections ] [ #last:index ] [ #data part:data ]
             #set            [ #data path ] [ #last ]
             #resolve        [ #scope:path ]
-            #set            [ #data section ] [ #last ]
+            #set            [ #data section_entry ] [ #last ]
 
             @ make sure that the section has not been mapped before
-            #if             [ #data #present ] [ #scope:section ] [ #data mapped ]
-            #print_line     [ #root:color:red ] [ #data "\nprevious relocation of " ] [ #scope:iterator:instance:1 ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:section:mapped ]
+            #if             [ #data #present ] [ #scope:section_entry ] [ #data mapped ]
+            #print_line     [ #root:color:red ] [ #data "\nprevious relocation of " ] [ #scope:name ] [ #root:color:none ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:section_entry:mapped ]
             #print_line     [ #root:color:red ] [ #data "\nrelocated again here" ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:iterator:instance:2 ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:position ]
             #print_line
             #error          [ #scope:type ] [ #data " sections may only be mapped once" ]
             #end
 
-            @ save position for future checking
-            #insert         [ #scope:section ] [ #data base ] [ #scope:position ]
-            #insert         [ #last ] [ #data mapped ] [ #scope:iterator:instance:2 ]
+            @ move the section
+            #insert         [ #scope:section_entry ] [ #data mapped ] [ #scope:position ]
+            #insert         [ #last ] [ #data base ] [ #scope:top:size ]
             #modify         [ #scope:path ] [ #last ]
+            #add            [ #scope:top:size ] [ #scope:section_entry:size ]
+            #modify         [ #data #scope:top:size ] [ #last ]
 
-            @ increment position with the size of the section
-            #add            [ #scope:position ] [ #scope:section:size ]
-            #set            [ #data position ] [ #last ]
-            #set            [ #data confirmed ] [ #data !true ]
-            #end
-            #end
+            @ return modified top
+            #return         [ #scope:top ]
+        ]
 
-            @
-            #if             [ #data #equals ] [ #scope:confirmed ] [ #data !false ]
-            #if             [ #data #not_keyword ] [ #scope:iterator:instance:1 ]
-            #print_line     [ #root:color:red ] [ #data "\nunknown " ] [ #scope:type ] [ #data " section " ]  [ #scope:iterator:instance:1 ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:iterator:instance:2 ]
+        remap [ [ #single top ] [ #single type ]
+
+            @ get the respective sections
+            #identifier     [ #scope:type ] [ #data _sections ]
+            #index          [ #build ] [ #last ]
+            #set            [ #data pool ] [ #last ]
+
+            @ set size to 0 initially
+            #insert         [ #scope:top ] [ #data size ] [ #data 0 ]
+            #set            [ #data top ] [ #last ]
+
+            @ if custom map is present, iterate over the chunks
+            #identifier     [ #scope:type ] [ #data _map ]
+            #if             [ #data #present ] [ #build ] [ #last ]
+            #index          [ #build ] [ #last ]
+            #iterate        [ #last:chunks ]
+            #iterate        [ #last:instance ]
+            #set            [ #data iterator ] [ #last:instance ]
+
+            @ if chunk is #default
+            #if             [ #data #present ] [ #scope:iterator ] [ #data default ]
+
+            @ make sure #default has not been mapped before
+            #if             [ #data #present ] [ #scope ] [ #data default_mapped ]
+            #print_line     [ #root:color:red ] [ #data "\nprevious relocation of default " ] [ #scope:type ] [ #data " sections" ] [ #root:color:none ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:default_mapped ]
+            #print_line     [ #root:color:red ] [ #data "\nrelocated again here" ] [ #root:color:none ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:iterator:position ]
             #print_line
-            #error          [ #data "known " ] [ #scope:type ] [ #data " sections are: TODO" ]
+            #error          [ #data "default " ] [ #scope:type ] [ #data " section may only be mapped once" ]
             #end
+
+            @ save position for errors and move the #default sections
+            #set            [ #data default_mapped ] [ #scope:iterator:position ]
+            #call           [ #function:resolve:move_default ] [ #scope:top ] [ #scope:pool:#default ]
+            #set            [ #data top ] [ #last ]
+
+            @ if chunk is not #default, make sure it exists
+            #else           [ #data #present ] [ #scope:iterator ] [ #data identifier ]
+            #if             [ #data #not_present ] [ #scope:pool ] [ #scope:iterator:identifier ]
+            #print_line     [ #root:color:red ] [ #data "\nunknown " ] [ #scope:type ] [ #data " section " ]  [ #scope:iterator:identifier ] [ #root:color:none ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:iterator:position ]
+            #print_line
+            #error          [ #scope:type ] [ #data " section " ] [ #scope:iterator:identifier ] [ #data " is not defined" ]
             #end
+
+            @ move the named section
+            #call           [ #function:resolve:move_section ] [ #scope:top ] [ #scope:type ] [ #scope:pool ] [ #scope:iterator:identifier ] [ #scope:iterator:position ]
+            #set            [ #data top ] [ #last ]
+
+            @ if chunk is the base
+            #else           [ #data #present ] [ #scope:iterator ] [ #data base ]
+            #if             [ #data #smaller ] [ #scope:iterator:base ] [ #scope:top:size ]
+            #print_line     [ #root:color:red ] [ #data "\noverlap at address " ] [ #scope:iterator:base ] [ #root:color:none ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:iterator:position ]
+            #print_line
+            #error          [ #scope:type ] [ #data " sections may not overlap" ]
+            #end
+            #modify         [ #data #scope:top:size ] [ #scope:iterator:base ]
+
+            @ if chunk is an offset
+            #else           [ #data #present ] [ #scope:iterator ] [ #data offset ]
+            #add            [ #scope:top:size ] [ #scope:iterator:offset ]
+            #modify         [ #data #scope:top:size ] [ #last ]
             #end
             #end
             #end
 
-            @ no custom map present
+            @ if no custom map present
             #else
             #iterate        [ #scope:pool ]
-            #path           [ #data #scope:self:sections ] [ #last:instance:2 ] [ #data part:data ]
-            #set            [ #data path ] [ #last ]
-            #resolve        [ #scope:path ]
-            #set            [ #data section ] [ #last ]
-            #insert         [ #scope:section ] [ #data base ] [ #scope:position ]
-            #modify         [ #scope:path ] [ #last ]
-            #add            [ #scope:position ] [ #scope:section:size ]
-            #set            [ #data position ] [ #last ]
+
+            @ #default section
+            #if             [ #data #keyword ] [ #last:instance ]
+            #call           [ #function:resolve:move_default ] [ #scope:top ] [ #scope:pool:#default ]
+            #set            [ #data top ] [ #last ]
+
+            @ named section
+            #else
+            #call           [ #function:resolve:move_section ] [ #scope:top ] [ #scope:type ] [ #scope:pool ] [ #last:instance ] [ #data none ]
+            #set            [ #data top ] [ #last ]
+            #end
             #end
             #end
 
-            @
-            #insert         [ #scope:self ] [ #scope:size ] [ #scope:position ]
-            #modify         [ #data #scope:self ] [ #last ]
-            #return         [ #scope:self ]
+            @ move the size field to a typed field
+            #identifier     [ #scope:type ] [ #data _size ]
+            #move           [ #scope:top ] [ #data size ] [ #last ]
+            #return         [ #last ]
+        ]
+
+        increment [ [ #single key ]
+            #index          [ #build:counter ] [ #scope:key ]
+            #add            [ #last ] [ #data 1 ]
+            #set            [ #data value ] [ #last ]
+            #overwrite      [ #build:counter ] [ #scope:key ] [ #scope:value ]
+            #modify         [ #data #build:counter ] [ #last ]
+            #return         [ #scope:value ]
         ]
 
         module_entry [ [ #single module ] [ #single count ] [ #single position ]
 
-            @
-            #index          [ #root:module_list ] [ #scope:module ]
-            #set            [ #data list_entry ] [ #last ]
+            @ get description entry
+            #index          [ #root:module_description ] [ #scope:module ]
+            #set            [ #data description ] [ #last ]
 
-            @
+            @ if module is a driver
             #for            [ #data 1 ] [ #scope:count ]
-            #if             [ #data #present ] [ #scope:list_entry ] [ #data drives ]
-            #iterate        [ #scope:list_entry:drives ]
+            #if             [ #data #present ] [ #scope:description ] [ #data drives ]
+            #iterate        [ #scope:description:drives ]
             #set            [ #data resource ] [ #last:instance ]
 
             @ make sure that there are no other modules driving the inputs
@@ -376,123 +410,129 @@
             #index          [ #build:driven ] [ #scope:resource ]
             #set            [ #data previous ] [ #last ]
 
-            @
+            @ if the previous driver is a different module
             #print_line     [ #root:color:red ] [ #data "\nprevious driver of " ] [ #scope:resource ] [ #root:color:none ]
             #call           [ #function:position:print ] [ #root:color:red ] [ #scope:previous:position ]
             #print_line     [ #root:color:red ] [ #data "\nsecond driver here" ] [ #root:color:none ]
             #call           [ #function:position:print ] [ #root:color:red ] [ #scope:position ]
             #print_line
 
-            @
-            #if             [ #data #equals ] [ #scope:previous:name ] [ #scope:module ]
+            @ if the previous driver is the same module
+            #if             [ #data #equals ] [ #scope:previous:module ] [ #scope:module ]
             #error          [ #scope:module ] [ #data " module may only be in the core once since it's driving " ] [ #scope:resource ]
             #else
-            #error          [ #scope:module ] [ #data " module may not drive " ] [ #scope:resource ] [ #data " as it's already driven by the " ] [ #scope:previous:name ] [ #data " module" ]
+            #error          [ #scope:module ] [ #data " module may not drive " ] [ #scope:resource ] [ #data " as it's already driven by the " ] [ #scope:previous:module ] [ #data " module" ]
+            #end
             #end
 
-            @
-            #else
-            #map            [ #data name ] [ #scope:module ] [ #data position ] [ #scope:position ]
+            @ save the current module and position in case another module wants to drive it
+            #map            [ #data module ] [ #scope:module ] [ #data position ] [ #scope:position ]
             #insert         [ #build:driven ] [ #scope:resource ] [ #last ]
             #modify         [ #data #build:driven ] [ #last ]
             #end
-            #end
 
-            @
+            @ set index to just the module name
             #set            [ #data counter ] [ #data 0 ]
             #set            [ #data index ] [ #scope:module ]
+
+            @ if module is not a driver, set index to the module name plus the module number
             #else
             #index          [ #build:counter:module ] [ #scope:module ]
             #add            [ #last ] [ #data 1 ]
             #set            [ #data counter ] [ #last ]
-            #overwrite      [ #build:counter:module ] [ #scope:module ] [ #scope:counter ]
-            #modify         [ #data #build:counter:module ] [ #last ]
             #subtract       [ #scope:counter ] [ #data 1 ]
             #identifier     [ #scope:module ] [ #last ]
             #set            [ #data index ] [ #last ]
+
+            @ increment the module counter
+            #overwrite      [ #build:counter:module ] [ #scope:module ] [ #scope:counter ]
+            #modify         [ #data #build:counter:module ] [ #last ]
             #end
 
             @ create emtpy lookup entry
-            #set            [ #data entry ] [ #data {} ]
-            #length         [ #scope:list_entry:registers ]
+            #set            [ #data entry ] [ #data { } ]
+            #length         [ #scope:description:registers ]
             #set            [ #data size ] [ #last ]
 
-            @
+            @ iterate over all entries
             #for            [ #data 0 ] [ #scope:size ]
             #if             [ #data #equals ] [ #last ] [ #scope:size ]
             #insert         [ #build:module_lookup ] [ #scope:index ] [ #scope:entry ]
             #modify         [ #data #build:module_lookup ] [ #last ]
+
+            @ add entry to resolved modules
+            #map            [ #data module ] [ #scope:module ] [ #data lookup ] [ #scope:index ]
+            #append         [ #build:resolved_modules ] [ #last ]
+            #modify         [ #data #build:resolved_modules ] [ #last ]
+
+            @ get the register name
             #else
             #set            [ #data selector ] [ #last ]
             #add            [ #scope:selector ] [ #data 1 ]
-            #index          [ #scope:list_entry:registers ] [ #last ]
-            #set            [ #data register ] [ #last ]
-            #set            [ #data position ] [ #data none ]
+            #index          [ #scope:description:registers ] [ #last ]
 
-            @
-            #if             [ #data #keyword ] [ #scope:register ]
-            #identifier     [ #scope:register ]
+            @ if the register is a full register
+            #if             [ #data #keyword ] [ #last ]
+            #identifier     [ #last ]
             #set            [ #data register ] [ #last ]
-            #set            [ #data position ] [ #build:counter:full_register ]
-
-            @
             #call           [ #function:resolve:increment ] [ #data full_register ]
+            #set            [ #data input ] [ #last ]
+            #call           [ #function:resolve:increment ] [ #data register ]
+            #map            [ #data output ] [ #last ] [ #data input ] [ #scope:input ] [ #data sources ] [ #data [ ] ]
+
+            @ if the register is not a full register
+            #else
+            #set            [ #data register ] [ #last ]
+            #call           [ #function:resolve:increment ] [ #data register ]
+            #map            [ #data output ] [ #last ]
             #end
 
-            @
-            #list           [ #build:counter:register ] [ #scope:position ]
+            @ add register entry to module lookup
             #insert         [ #scope:entry ] [ #scope:register ] [ #last ]
             #set            [ #data entry ] [ #last ]
-
-            @
-            #call           [ #function:resolve:increment ] [ #data register ]
             #end
             #end
             #end
-        ]
-
-        increment [ [ #single key ]
-            #index          [ #build:counter ] [ #scope:key ]
-            #add            [ #last ] [ #data 1 ]
-            #set            [ #data value ] [ #last ]
-            #overwrite      [ #build:counter ] [ #scope:key ] [ #last ]
-            #modify         [ #data #build:counter ] [ #last ]
-            #return         [ #scope:value ]
         ]
 
         register_entry [ [ #single type ] [ #single count ] [ #single full ]
 
-            @ add register type to the module lookup
-            #if             [ #data #not_present ] [ #build:module_lookup ] [ #scope:type ]
-            #insert         [ #build:module_lookup ] [ #scope:type ] [ #data {} ]
-            #modify         [ #data #build:module_lookup ] [ #last ]
-            #end
-
-            @
+            @ create slot identifier
             #for            [ #data 1 ] [ #scope:count ]
             #index          [ #build:counter ] [ #scope:type ]
             #identifier     [ #data slot ] [ #last ]
             #set            [ #data index ] [ #last ]
+
+            @ increment register count and set bus output slot
+            #call           [ #function:resolve:increment ] [ #data register ]
+            #set            [ #data output ] [ #last ]
+
+            @ if its a full register
             #if             [ #data #true ] [ #scope:full ]
-            #list           [ #build:counter:register ] [ #build:counter:full_register ]
+            #call           [ #function:resolve:increment ] [ #data full_register ]
+            #set            [ #data input ] [ #last ]
+            #map            [ #data output ] [ #scope:output ] [ #data input ] [ #scope:input ] [ #data sources ] [ #data [ ] ]
+
+            @ if its not a full register
             #else
-            #list           [ #build:counter:register ] [ #data none ]
+            #map            [ #data output ] [ #scope:output ]
             #end
             #set            [ #data entry ] [ #last ]
 
-            @
+            @ add register entry to module lookup
             #path           [ #data #build:module_lookup ] [ #scope:type ]
             #set            [ #data path ] [ #last ]
             #resolve        [ #scope:path ]
             #insert         [ #last ] [ #scope:index ] [ #scope:entry ]
             #modify         [ #scope:path ] [ #last ]
 
-            @
+            @ add register to resolved modules
+            #map            [ #data register ] [ #scope:type ] [ #data slot ] [ #scope:index ]
+            #append         [ #build:resolved_modules ] [ #last ]
+            #modify         [ #data #build:resolved_modules ] [ #last ]
+
+            @ increment the register counter of that type
             #call           [ #function:resolve:increment ] [ #scope:type ]
-            #call           [ #function:resolve:increment ] [ #data register ]
-            #if             [ #data #true ] [ #scope:full ]
-            #call           [ #function:resolve:increment ] [ #data full_register ]
-            #end
             #end
         ]
 
@@ -504,15 +544,23 @@
             #end
 
             @ create register counters and necessary maps
-            #insert         [ #build ] [ #data counter ] [ #data { module {} register 0 full_register 0 operant 0 memory 0 data 0 } ]
-            #insert         [ #last ] [ #data driven ] [ #data {} ]
-            #insert         [ #last ] [ #data bytecode ] [ #data [] ]
-            #insert         [ #last ] [ #data memory ] [ #data [] ]
-            #insert         [ #last ] [ #data operants ] [ #data [] ]
+            #insert         [ #build ] [ #data counter ] [ #data { module { } register 0 full_register 0 } ]
+            #insert         [ #last ] [ #data driven ] [ #data { } ]
+            #insert         [ #last ] [ #data module_lookup ] [ #data { } ]
+            #insert         [ #last ] [ #data resolved_modules ] [ #data [ ] ]
             #modify         [ #data #build ] [ #last ]
 
+            @ add counters and lookup entries for all register types
+            #iterate        [ #root:valid_registers ]
+            #set            [ #data register_type ] [ #last:instance ]
+            #insert         [ #build:counter ] [ #scope:register_type ] [ #data 0 ]
+            #modify         [ #data #build:counter ] [ #last ]
+            #insert         [ #build:module_lookup ] [ #scope:register_type ] [ #data { } ]
+            #modify         [ #data #build:module_lookup ] [ #last ]
+            #end
+
             @ create module counters
-            #iterate        [ #root:module_list ]
+            #iterate        [ #root:module_description ]
             #if             [ #data #not_present ] [ #build:counter:module ] [ #last:selector ]
             #insert         [ #build:counter:module ] [ #last:selector ] [ #data 0 ]
             #modify         [ #data #build:counter:module ] [ #last ]
@@ -524,22 +572,22 @@
             #call           [ #function:print:debug ] [ #data "creating module lookup" ]
             #end
 
-            @ create module lookup
-            #insert         [ #build ] [ #data module_lookup ] [ #data {} ]
-            #modify         [ #data #build ] [ #last ]
+            @ iterate modules to be created
             #iterate        [ #build:modules ]
 
             @ memory, operant or data register
-            #if             [ #data #equals ] [ #last:instance:1 ] [ #data #memory ]
-            #call           [ #function:resolve:register_entry ] [ #data memory ] [ #last:instance:2 ] [ #data !true ]
-            #else           [ #data #equals ] [ #last:instance:1 ] [ #data #operant ]
-            #call           [ #function:resolve:register_entry ] [ #data operant ] [ #last:instance:2 ] [ #data !false ]
-            #else           [ #data #equals ] [ #last:instance:1 ] [ #data #data ]
-            #call           [ #function:resolve:register_entry ] [ #data data ] [ #last:instance:2 ] [ #data !true ]
+            #if             [ #data #present ] [ #last:instance ] [ #data register ]
+            #if             [ #data #equals ] [ #last:instance:register ] [ #data memory ]
+            #call           [ #function:resolve:register_entry ] [ #data memory ] [ #last:instance:count ] [ #data !true ]
+            #else           [ #data #equals ] [ #last:instance:register ] [ #data operant ]
+            #call           [ #function:resolve:register_entry ] [ #data operant ] [ #last:instance:count ] [ #data !false ]
+            #else           [ #data #equals ] [ #last:instance:register ] [ #data data ]
+            #call           [ #function:resolve:register_entry ] [ #data data ] [ #last:instance:count ] [ #data !true ]
+            #end
 
             @ module
             #else
-            #call           [ #function:resolve:module_entry ] [ #last:instance:1 ] [ #last:instance:2 ] [ #last:instance:3 ]
+            #call           [ #function:resolve:module_entry ] [ #last:instance:module ] [ #last:instance:count ] [ #last:instance:position ]
             #end
             #end
 
@@ -562,21 +610,21 @@
             @ relocate labels and sublabels
             #iterate        [ #build:labels ]
             #set            [ #data iterator ] [ #last ]
-            #index          [ #scope:self:sections ] [ #scope:iterator:instance:1 ]
+            #index          [ #scope:self:sections ] [ #scope:iterator:instance:section ]
             #set            [ #data section ] [ #last:part:data ]
 
             @ if section is mapped, relocate the sublabels
             #if             [ #data #present ] [ #scope:section ] [ #data base ]
-            #iterate        [ #scope:iterator:instance:3 ]
+            #iterate        [ #scope:iterator:instance:sublabels ]
             #set            [ #data sublabel ] [ #last ]
-            #add            [ #scope:section:base ] [ #scope:sublabel:instance:1 ]
-            #overwrite      [ #scope:iterator:instance:3 ] [ #scope:sublabel:selector ] [ #last ]
-            #modify         [ #data #scope:iterator:instance:3 ] [ #last ]
+            #add            [ #scope:section:base ] [ #scope:sublabel:instance:offset ]
+            #overwrite      [ #scope:iterator:instance:sublabels ] [ #scope:sublabel:selector ] [ #last ]
+            #modify         [ #data #scope:iterator:instance:sublabels ] [ #last ]
             #end
 
             @ relocate the label
-            #add            [ #scope:section:base ] [ #scope:iterator:instance:2 ]
-            #list           [ #last ] [ #scope:iterator:instance:3 ]
+            #add            [ #scope:section:base ] [ #scope:iterator:instance:offset ]
+            #map            [ #data value ] [ #last ] [ #data sublabels ] [ #scope:iterator:instance:sublabels ]
             #overwrite      [ #build:labels ] [ #scope:iterator:selector ] [ #last ]
             #modify         [ #data #build:labels ] [ #last ]
 
@@ -587,44 +635,8 @@
             #end
             #end
 
-            @ debug message
-            #if             [ #data #true ] [ #root:debug ]
-            #call           [ #function:format:tag ] [ #root:color:magenta ] [ #data "! TODO !" ]
-            #call           [ #function:print:debug ] [ #last ] [ #data " compress micro instructions" ]
-            #end
-
-            @ debug message
-            #if             [ #data #true ] [ #root:debug ]
-            #call           [ #function:print:debug ] [ #data "creating empty memory" ]
-            #end
-
-            @ create default memory image and instructions
-            #set            [ #data noop ] [ #data [] ]
-            #for            [ #data 1 ] [ #build:counter:full_register ]
-            #insert         [ #scope:noop ] [ #data -1 ] [ #data noop ]
-            #set            [ #data noop ] [ #last ]
-            #end
-
-            @ create operant slots containing none
-            #set            [ #data operants ] [ #data [] ]
-            #if             [ #data #not_zero ] [ #build:counter:operant ]
-            #for            [ #data 1 ] [ #build:counter:operant ]
-            #insert         [ #scope:operants ] [ #data -1 ] [ #data none ]
-            #set            [ #data operants ] [ #last ]
-            #end
-            #end
-
-            @ create instruction slots containing noops
-            #if             [ #data #not_zero ] [ #scope:self:code_size ]
-            #for            [ #data 1 ] [ #scope:self:code_size ]
-            #insert         [ #build:bytecode ] [ #data -1 ] [ #scope:noop ]
-            #modify         [ #data #build:bytecode ] [ #last ]
-            #insert         [ #build:operants ] [ #data -1 ] [ #scope:operants ]
-            #modify         [ #data #build:operants ] [ #last ]
-            #end
-
             @ display warning if the core has no code
-            #else
+            #if             [ #data #zero ] [ #scope:self:code_size ]
             #call           [ #function:print:warning ] [ #data "no executable code specified, core might not do anything" ]
             #end
 
@@ -633,29 +645,11 @@
             #if             [ #data #not_zero ] [ #scope:self:memory_size ]
             #call           [ #function:print:warning ] [ #data "program has data in memory but no memory registers to access it" ]
             #end
-
-            @ create memory slots containing 0
-            #else           [ #data #not_zero ] [ #scope:self:memory_size ]
-            #for            [ #data 1 ] [ #scope:self:memory_size ]
-            #insert         [ #build:memory ] [ #data -1 ] [ #data 0 ]
-            #modify         [ #data #build:memory ] [ #last ]
-            #end
             #end
 
             @ process sections
             #pass           [ #scope:self:sections ]
             #end
-
-            @ make sure that all resources that need to be driven are
-            #iterate        [ #root:resource ]
-            #if             [ #data #true ] [ #last:instance ]
-            #if             [ #data #not_present ] [ #build:driven ] [ #last:selector ]
-            #error          [ #data "core does not provide a module driving " ] [ #last:selector ]
-            #end
-            #end
-            #end
-
-            @
             #return         [ #scope:self ]
         ]
     }

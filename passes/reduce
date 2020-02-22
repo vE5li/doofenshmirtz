@@ -1,0 +1,342 @@
+#function {
+
+    reduce {
+
+        label [ [ #single self ] [ #single ]
+            #if             [ #data #present ] [ #scope:self ] [ #data name ]
+            #modify         [ #data #build:active_label ] [ #scope:self:name ]
+            #end
+            #return         [ #data 0 ]
+        ]
+
+        instance [ [ #single self ] [ #single offset ]
+
+            @ space
+            #if             [ #data #equals ] [ #scope:self:type ] [ #data space ]
+            #return         [ #scope:self:value ]
+
+            @ integer
+            #else           [ #data #equals ] [ #scope:self:type ] [ #data integer ]
+            #if             [ #data #present ] [ #scope:self ] [ #data identifier ]
+
+            @ label, make sure it exists
+            #if             [ #data #not_present ] [ #build:labels ] [ #scope:self:identifier ]
+            #error          [ #data "unknown label " ] [ #scope:self:identifier ]
+            #end
+
+            @ make sure label is mapped
+            #index          [ #build:labels ] [ #scope:self:identifier ]
+            #if             [ #data #equals ] [ #last ] [ #data unmapped ]
+            #error          [ #data "label is not mapped" ]
+            #end
+
+            @ write the value of the label to memory
+            #overwrite      [ #build:memory ] [ #scope:offset ] [ #last:value ]
+            #modify         [ #data #build:memory ] [ #last ]
+
+            @ immediate
+            #else
+            #overwrite      [ #build:memory ] [ #scope:offset ] [ #scope:self:value ]
+            #modify         [ #data #build:memory ] [ #last ]
+            #end
+            #return         [ #data 1 ]
+
+            @ string
+            #else           [ #data #equals ] [ #scope:self:type ] [ #data string ]
+            #iterate        [ #scope:self:value ]
+            #set            [ #data iterator ] [ #last ]
+            #add            [ #scope:iterator:selector ] [ #scope:offset ] [ #data -1 ]
+            #overwrite      [ #build:memory ] [ #last ] [ #scope:iterator:instance ]
+            #modify         [ #data #build:memory ] [ #last ]
+            #end
+            #length         [ #scope:self:value ]
+            #return         [ #last ]
+
+            @ character
+            #else           [ #data #equals ] [ #scope:self:type ] [ #data character ]
+            #overwrite      [ #build:memory ] [ #scope:offset ] [ #scope:self:value ]
+            #modify         [ #data #build:memory ] [ #last ]
+            #return         [ #data 1 ]
+
+            @ float
+            #else           [ #data #equals ] [ #scope:self:type ] [ #data float ]
+            #error          [ #data "implement floats" ]
+            @#overwrite      [ #build:memory ] [ #scope:offset ] [ #scope:self:value ]
+            @#modify         [ #data #build:memory ] [ #last ]
+            #return         [ #data 1 ]
+            #end
+        ]
+
+        allocate_operant [ [ #single instance ] [ #single offset ]
+
+            @ get the path and entry of the operants in the current instruction
+            #path           [ #data #build:operants ] [ #scope:offset ]
+            #set            [ #data entry_path ] [ #last ]
+            #resolve        [ #scope:entry_path ]
+            #set            [ #data operants_entry ] [ #last ]
+
+            @ if value is already one of the operants
+            #if             [ #data #contains ] [ #scope:operants_entry ] [ #scope:instance ]
+            #position       [ #scope:operants_entry ] [ #scope:instance ]
+            #subtract       [ #last:1 ] [ #data 1 ]
+            #identifier     [ #data slot ] [ #last ]
+            #path           [ #data operant ] [ #last ]
+            #return         [ #last ]
+
+            @ if value is not yet one of the operants
+            #else
+            #position       [ #scope:operants_entry ] [ #data none ]
+            #set            [ #data operant_index ] [ #last:1 ]
+
+            @ modify the operants entry
+            #overwrite      [ #scope:operants_entry ] [ #scope:operant_index ] [ #scope:instance ]
+            #modify         [ #scope:entry_path ] [ #last ]
+
+            @ create path to register and return it
+            #subtract       [ #scope:operant_index ] [ #data 1 ]
+            #identifier     [ #data slot ] [ #last ]
+            #path           [ #data operant ] [ #last ]
+            #return         [ #last ]
+            #end
+        ]
+
+        source [ [ #single self ] [ #single offset ]
+
+            @ register
+            #if             [ #data #present ] [ #scope:self ] [ #data register ]
+            #pass           [ #scope:self:register ]
+            #return         [ #last ]
+
+            @ label, allocate an operant register and return it
+            #else           [ #data #present ] [ #scope:self ] [ #data name ]
+            #index          [ #build:labels ] [ #scope:self:name ]
+            #call           [ #function:reduce:allocate_operant ] [ #last:value ] [ #scope:offset ]
+            #return         [ #last ]
+
+            @ sublabel, allocate an operant register and return it
+            #else           [ #data #present ] [ #scope:self ] [ #data sublabel ]
+            #index          [ #build:labels ] [ #build:active_label ]
+            #index          [ #last:sublabels ] [ #scope:self:sublabel ]
+            #call           [ #function:reduce:allocate_operant ] [ #last ] [ #scope:offset ]
+            #return         [ #last ]
+
+            @ immediate, allocate an operant register and return it
+            #else
+            #call           [ #function:convert_value ] [ #scope:self:value ]
+            #call           [ #function:reduce:allocate_operant ] [ #last ] [ #scope:offset ]
+            #return         [ #last ]
+            #end
+        ]
+
+        register [ [ #single self ]
+            #path           [ #scope:self:steps:1:part ] [ #scope:self:steps:2:part ]
+            #return         [ #last ]
+        ]
+
+        move [ [ #single self ] [ #single position ] [ #single offset ]
+
+            @ pass source register and destination register
+            #pass           [ #scope:self:source ] [ #scope:offset ]
+            #set            [ #data source ] [ #last ]
+            #pass           [ #scope:self:register ]
+            #set            [ #data register ] [ #last ]
+
+            @ get the lookup entry of the destination register
+            #index          [ #build:module_lookup ] [ #scope:register:1 ]
+            #index          [ #last ] [ #scope:register:2 ]
+            #set            [ #data register_entry ] [ #last ]
+
+            @ get the index of the source register
+            #position       [ #scope:register_entry:sources ] [ #scope:source ]
+            #subtract       [ #last:1 ] [ #data 1 ]
+            #set            [ #data reduced_source ] [ #last ]
+
+            @ get the path and entry of the current instruction
+            #path           [ #data #build:bytecode ] [ #scope:offset ]
+            #set            [ #data instruction_path ] [ #last ]
+            #resolve        [ #scope:instruction_path ]
+            #set            [ #data instruction_entry ] [ #last ]
+
+            @ make sure that the destination is not already loading another value
+            #index          [ #scope:instruction_entry ] [ #scope:register_entry:input ]
+            #if             [ #data #not_equals ] [ #last ] [ #data noop ]
+            #print_line     [ #root:color:red ] [ #data "\nprevious move to " ] [ #scope:register ] [ #root:color:none ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #last:position ]
+            #print_line     [ #root:color:red ] [ #data "\nsecond move to " ] [ #scope:register ] [ #data " here" ] [ #root:color:none ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:position ]
+            #print_line
+            #error          [ #data "only one value may be moved to any register per instruction" ]
+            #end
+
+            @ overwrite noop  micro instruction
+            #map            [ #data source ] [ #scope:reduced_source ] [ #data position ] [ #scope:position ]
+            #overwrite      [ #scope:instruction_entry ] [ #scope:register_entry:input ] [ #last ]
+            #modify         [ #scope:instruction_path ] [ #last ]
+            #return         [ #scope:self ]
+        ]
+
+        instruction [ [ #single self ] [ #single offset ]
+            #if             [ #data #present ] [ #scope:self ] [ #data moves ]
+            #iterate        [ #scope:self:moves ]
+            #pass           [ #last:instance:part ] [ #last:instance:position:part ] [ #scope:offset ]
+            #end
+            #end
+            #return         [ #data 1 ]
+        ]
+
+        block [ [ #single self ] [ #single offset ]
+            #pass           [ #scope:self:data ] [ #scope:offset ]
+            #return         [ #last ]
+        ]
+
+        section [ [ #single section ]
+
+            @ if section is not mapped, return without passing
+            #if             [ #data #not_present ] [ #scope:section ] [ #data base ]
+            #return         [ #scope:section ]
+            #end
+
+            @ set active label to none
+            #overwrite      [ #build ] [ #data active_label ] [ #data none ]
+            #modify         [ #data #build ] [ #last ]
+
+            @ if blocks are present, set offset to the base address of the section
+            #if             [ #data #present ] [ #scope:section ] [ #data blocks ]
+            #add            [ #scope:section:base ] [ #data 1 ]
+            #set            [ #data offset ] [ #last ]
+
+            @ pass all the blocks and keep track of the offset
+            #iterate        [ #scope:section:blocks ]
+            #pass           [ #last:instance:part ] [ #scope:offset ]
+            #add            [ #scope:offset ] [ #last ]
+            #set            [ #data offset ] [ #last ]
+            #end
+            #end
+        ]
+
+        code_section [ [ #single self ]
+            #call           [ #function:reduce:section ] [ #scope:self ]
+            #return         [ #scope:self ]
+        ]
+
+        memory_section [ [ #single self ]
+            #if             [ #data #not_zero ] [ #build:counter:memory ]
+            #call           [ #function:reduce:section ] [ #scope:self ]
+            #end
+            #return         [ #scope:self ]
+        ]
+
+        top [ [ #single self ]
+
+            @ if debug is enabled, print the current pass
+            #if             [ #data #true ] [ #root:debug ]
+            #call           [ #function:print_pass ] [ #data "reduce" ]
+            #end
+
+            @ make sure that all resources that need to be driven are
+            #iterate        [ #root:resource ]
+            #if             [ #data #true ] [ #last:instance ]
+            #if             [ #data #not_present ] [ #build:driven ] [ #last:selector ]
+            #error          [ #data "core does not provide a module driving " ] [ #last:selector ]
+            #end
+            #end
+            #end
+
+            @ create register counters and necessary maps
+            #insert         [ #build ] [ #data bytecode ] [ #data [ ] ]
+            #insert         [ #last ] [ #data memory ] [ #data [ ] ]
+            #insert         [ #last ] [ #data operants ] [ #data [ ] ]
+            #insert         [ #last ] [ #data instruction_width ] [ #data 0 ]
+            #insert         [ #last ] [ #data micro_instruction_width ] [ #data [ ] ]
+            #modify         [ #data #build ] [ #last ]
+
+            @ create noop instruction and instruction width
+            #set            [ #data noop ] [ #data [ ] ]
+            #for            [ #data 1 ] [ #build:counter:full_register ]
+            #append         [ #scope:noop ] [ #data noop ]
+            #set            [ #data noop ] [ #last ]
+            #append         [ #build:micro_instruction_width ] [ #data 0 ]
+            #modify         [ #data #build:micro_instruction_width ] [ #last ]
+            #end
+
+            @ debug message
+            #if             [ #data #true ] [ #root:debug ]
+            #call           [ #function:print:debug ] [ #data "calculating instruction width" ]
+            #end
+
+            @ iterate all registers
+            #iterate        [ #build:module_lookup ]
+            #iterate        [ #last:instance ]
+            #if             [ #data #present ] [ #last:instance ] [ #data sources ]
+            #set            [ #data register_entry ] [ #last:instance ]
+
+            @ calculate micro instruction width
+            #length         [ #scope:register_entry:sources ]
+            #add            [ #last ] [ #data 1 ]
+            #logarithm      [ #last ] [ #data 2 ]
+            #ceiling        [ #last ]
+
+            @ if the micro instruction takes at least one bit
+            #if             [ #data #not_zero ] [ #last ]
+            #set            [ #data width ] [ #last ]
+
+            @ update micro instruction width
+            #overwrite      [ #build:micro_instruction_width ] [ #scope:register_entry:input ] [ #scope:width ]
+            #modify         [ #data #build:micro_instruction_width ] [ #last ]
+
+            @ update instruction width
+            #add            [ #build:instruction_width ] [ #scope:width ]
+            #modify         [ #data #build:instruction_width ] [ #last ]
+            #end
+            #end
+            #end
+            #end
+
+            @ debug message
+            #if             [ #data #true ] [ #root:debug ]
+            #call           [ #function:print:debug ] [ #data "creating empty operants" ]
+            #end
+
+            @ create operant slots containing none
+            #set            [ #data operants ] [ #data [ ] ]
+            #if             [ #data #not_zero ] [ #build:counter:operant ]
+            #for            [ #data 1 ] [ #build:counter:operant ]
+            #append         [ #scope:operants ] [ #data none ]
+            #set            [ #data operants ] [ #last ]
+            #end
+            #end
+
+            @ debug message
+            #if             [ #data #true ] [ #root:debug ]
+            #call           [ #function:print:debug ] [ #data "creating empty bytecode" ]
+            #end
+
+            @ create instruction slots containing noops
+            #if             [ #data #not_zero ] [ #scope:self:code_size ]
+            #for            [ #data 1 ] [ #scope:self:code_size ]
+            #append         [ #build:bytecode ] [ #scope:noop ]
+            #modify         [ #data #build:bytecode ] [ #last ]
+            #append         [ #build:operants ] [ #scope:operants ]
+            #modify         [ #data #build:operants ] [ #last ]
+            #end
+
+            @ debug message
+            #if             [ #data #true ] [ #root:debug ]
+            #call           [ #function:print:debug ] [ #data "creating empty memory" ]
+            #end
+
+            @ create memory slots containing 0
+            #if             [ #data #not_zero ] [ #scope:self:memory_size ]
+            #for            [ #data 1 ] [ #scope:self:memory_size ]
+            #append         [ #build:memory ] [ #data 0 ]
+            #modify         [ #data #build:memory ] [ #last ]
+            #end
+            #end
+
+            @ process sections
+            #pass           [ #scope:self:sections ]
+            #end
+            #return         [ #scope:self ]
+        ]
+    }
+}

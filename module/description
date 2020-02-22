@@ -1,4 +1,4 @@
-module_list {
+module_description {
 
     instruction {
         registers [ address #jump #condition ]

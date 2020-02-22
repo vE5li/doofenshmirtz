@@ -40,7 +40,7 @@
 
             @ create new entry and save it to #build:directives
             #range          [ #scope:self:#position:identifier ] [ #scope:self:#position:value ]
-            #list           [ #scope:self:value ] [ #last ]
+            #map            [ #data value ] [ #scope:self:value ] [ #data position ] [ #last ]
             #insert         [ #build:directives ] [ #scope:self:identifier ] [ #last ]
             #modify         [ #data #build:directives ] [ #last ]
             #return         [ #scope:self ]
@@ -53,9 +53,8 @@
             #call           [ #function:print_pass ] [ #data "define" ]
             #end
 
-            @ create initial maps
-            #remember       [ #data { true [ !true #none ] false [ !false #none ] default [ #default #none ] } ]
-            #map            [ #data labels ] [ #data {} ] [ #data code_sections ] [ #data [] ] [ #data memory_sections ] [ #data [] ] [ #data directives ] [ #last ]
+            @ create map with compiler directives
+            #insert         [ #build ] [ #data directives ] [ #data { true { value !true position #none } false { value !false position #none } default { value #default position #none } } ]
             #modify         [ #data #build ] [ #last ]
 
             @ pass sections if present

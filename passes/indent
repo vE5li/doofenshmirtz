@@ -25,10 +25,10 @@
             @ get the directives entry and check if its already resolved
             #index          [ #build:directives ] [ #scope:directive ]
             #set            [ #data entry ] [ #last ]
-            #if             [ #data #map ] [ #scope:entry:1 ]
+            #if             [ #data #map ] [ #scope:entry:value ]
 
             @ resolve the entry, overwrite its previous value and return it
-            #insert         [ #scope:checking ] [ #data -1 ] [ #scope:directive ]
+            #append         [ #scope:checking ] [ #scope:directive ]
             #pass           [ #scope:entry ] [ #last ]
             #set            [ #data entry ] [ #last ]
             #overwrite      [ #build:directives ] [ #scope:directive ] [ #scope:entry ]
@@ -36,16 +36,16 @@
 
             @ debug message
             #if             [ #data #true ] [ #root:debug ]
-            #serialize      [ #scope:entry:1 ]
+            #serialize      [ #scope:entry:value ]
             #call           [ #function:print:debug ] [ #data "directive " ] [ #root:color:magenta ] [ #scope:directive ] [ #root:color:none ] [ #data " set to " ] [ #root:color:magenta ] [ #last ] [ #root:color:none ]
             #end
 
             @ return newly resolved value
-            #return         [ #scope:entry:1 ]
+            #return         [ #scope:entry:value ]
             #end
 
             @ already resolved, return current value
-            #return         [ #scope:entry:1 ]
+            #return         [ #scope:entry:value ]
         ]
 
         directive [ [ #single self ] [ #single checking ]
@@ -198,19 +198,19 @@
         combine_equasion [ [ #single pieces ] [ #single checking ] @ TODO: better comments
 
             @ iterate the pieces
-            #set            [ #data combined ] [ #data [] ]
+            #set            [ #data combined ] [ #data [ ] ]
             #iterate        [ #scope:pieces ]
             #set            [ #data iterator ] [ #last ]
 
             @ pass the part and add the value and position to the combined list
             #pass           [ #scope:iterator:instance:part ] [ #scope:checking ]
             #list           [ #last ] [ #scope:iterator:instance:position:part ]
-            #insert         [ #scope:combined ] [ #data -1 ] [ #last ]
+            #append         [ #scope:combined ] [ #last ]
             #set            [ #data combined ] [ #last ]
 
             @ if there is an operator following, add it to the combined list aswell
             #if             [ #data #present ] [ #scope:iterator:instance ] [ #data seperator ]
-            #insert         [ #scope:combined ] [ #data -1 ] [ #scope:iterator:instance:seperator:operator ]
+            #append         [ #scope:combined ] [ #scope:iterator:instance:seperator:operator ]
             #set            [ #data combined ] [ #last ]
 
             @ return combined list
@@ -273,9 +273,9 @@
         ]
 
         collect [ [ #single parameters ]
-            #set            [ #data new ] [ #data [] ]
+            #set            [ #data new ] [ #data [ ] ]
             #iterate        [ #scope:parameters ]
-            #insert         [ #scope:new ] [ #data -1 ] [ #last:instance:part ]
+            #append         [ #scope:new ] [ #last:instance:part ]
             #set            [ #data new ] [ #last ]
             #end
             #return         [ #scope:new ]
@@ -352,7 +352,7 @@
 
             @ if present, pass the sections
             #if             [ #data #present ] [ #scope:self ] [ #data sections ]
-            #pass           [ #scope:self:sections ] [ #data [] ]
+            #pass           [ #scope:self:sections ] [ #data [ ] ]
             #modify         [ #data #scope:self:sections ] [ #last ]
             #end
             #return         [ #scope:self ]

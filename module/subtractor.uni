@@ -8,16 +8,16 @@ component FullSubtractor(in input0, in input1, in borrow_in, out difference, out
     borrow := (!input0 & input1) | (!(input0 ^ input1) & borrow_in)
 }
 
-component Subtractor(in input0[#bit_range], in input1[#bit_range(1)], out difference[#bit_range(1)], out borrow_out) {
+component Subtractor(in input0[#register], in input1[#register], out difference[#register], out borrow_out) {
     Wire borrow[#bit_width]
     HalfSubtractor(input0[0], input1[0], difference[0], borrow[0])
     borrow_out := borrow[#bit_width - 1]
 }
 
-component SubtractorComponent(in clock, in bus[bus_range], in selectors[#selector_range(2)], out destinations[#bit_range(4)]) {
+component SubtractorComponent<count0, count1>(in clock, in selector0[#selector(#count0)], in selector1[#selector(#count1)], in source0[#source(#count0)], in source1[#source(#count1)], out destination[#register][0:4]) {
     Wire borrow_out
-    BusRegister(clock, bus, selectors[#selector(0)], destinations[#bits(0)])
-    BusRegister(clock, bus, selectors[#selector(1)], destinations[#bits(1)])
-    Subtractor(destinations[#bits(0)], destinations[#bits(1)], destinations[#bits(2)], borrow_out)
-    destinations[#bits(3)] := #bit_width[borrow_out]
+    BusRegister<#count0>(clock, selector0, source0, destination[0])
+    BusRegister<#count1>(clock, selector1, source1, destination[1])
+    Subtractor(destination[0], destination[1], destination[2], borrow_out)
+    destinations[3] := #bit_width[borrow_out]
 }

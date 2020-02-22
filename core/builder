@@ -1,3 +1,5 @@
+valid_registers [ data memory operant ]
+
 resource {
     instruction     !true  @ program counter
     bytecode        !false @ entire bytecode

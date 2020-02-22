@@ -4,46 +4,44 @@
         [ [ #operator [ directive ] ] [ #identifier directive ] ]
     ]
 
-    label [ { register [ register:label ] resolve [ resolve:label ] }
+    label [ { register [ register:label ] resolve [ resolve:label ] reduce [ reduce:label ] }
         [ [ #operator [ sublabel ] ] [ #identifier identifier ] [ #operator [ index ] ] ]
         [                            [ #identifier name       ] [ #operator [ index ] ] ]
     ]
 
-    source [ { resolve [ resolve:source ] }
+    source [ { resolve [ resolve:source ] reduce [ reduce:source ] }
         [ [ #operator [ label     ] ] [ #identifier name                  ] ]
         [ [ #operator [ sublabel  ] ] [ #identifier sublabel              ] ]
         [                             [ #template   register [ register ] ] ]
         [                             [ #template   value    [ value    ] ] ]
     ]
 
-    register [ { resolve [ resolve:register ] }
+    register [ { resolve [ resolve:register ] reduce [ reduce:register ] }
         [ [ #confirmed steps [ #identifier ] [ #operator [ index ] ] ] ]
     ]
 
-    move [ { resolve [ resolve:move ] }
+    move [ { resolve [ resolve:move ] reduce [ reduce:move ] }
         [ [ #template source [ source ] ] [ #operator [ move ] ] [ #template register [ register ] ] ]
     ]
 
-    instruction [ { register [ register:instruction ] resolve [ resolve:instruction ] }
+    instruction [ { register [ register:instruction ] resolve [ resolve:instruction ] reduce [ reduce:instruction ] }
         [ [ #operator [ open_square ] ] [ #list moves [ #template [ move ] ] [ #operator [ or ] ] ] [ #operator [ close_square ] ] ]
         [ [ #operator [ open_square ] ]                                                             [ #operator [ close_square ] ] ]
     ]
 
-    instance [ { register [ register:instance ] resolve [ resolve:instance ] }
+    instance [ { register [ register:instance ] reduce [ reduce:instance ] }
         [ [ #identifier type ]                         [ #template   value      [ value ] ] ]
         [ [ #identifier type ] [ #operator [ label ] ] [ #identifier identifier           ] ]
     ]
 
     specification [ { register [ register:specification ] }
-        [ [ #identifier [ register ] ] [ #identifier register ] [ #operator [ open_square ] ] [ #template count [ directive ] ] [ #operator [ close_square ] ] ]
-        [ [ #identifier [ register ] ] [ #identifier register ] [ #operator [ open_square ] ] [ #integer  count               ] [ #operator [ close_square ] ] ]
-        [ [ #identifier [ register ] ] [ #identifier register ]                               [ #data     count 1             ]                                ]
+        [ [ #identifier [ register ] ] [ #identifier register ] [ #operator [ open_square ] ] [ #template count [ value ] ] [ #operator [ close_square ] ] ]
+        [ [ #identifier [ register ] ] [ #identifier register ]                               [ #data     count 1         ]                                ]
     ]
 
     module [ { register [ register:module ] }
-        [ [ #identifier [ module ] ] [ #identifier module ] [ #operator [ open_square ] ] [ #template count [ directive ] ] [ #operator [ close_square ] ] ]
-        [ [ #identifier [ module ] ] [ #identifier module ] [ #operator [ open_square ] ] [ #integer  count               ] [ #operator [ close_square ] ] ]
-        [ [ #identifier [ module ] ] [ #identifier module ]                               [ #data     count 1             ]                                ]
+        [ [ #identifier [ module ] ] [ #identifier module ] [ #operator [ open_square ] ] [ #template count [ value ] ] [ #operator [ close_square ] ] ]
+        [ [ #identifier [ module ] ] [ #identifier module ]                               [ #data     count 1         ]                                ]
     ]
 
     core_block [
@@ -56,24 +54,24 @@
         [ [ #identifier identifier [ core ] ] [ #operator [ open_curly ] ]                                                       [ #operator [ close_curly ] ] ]
     ]
 
-    code_block [ { register [ register:block ] resolve [ resolve:block ] }
+    code_block [ { register [ register:block ] reduce [ reduce:block ] }
         [ [ #template data [ label       ] ] ]
         [ [ #template data [ instruction ] ] ]
     ]
 
-    code_section [ { register [ register:code_section ] resolve [ resolve:code_section ] }
+    code_section [ { register [ register:code_section ] resolve [ resolve:code_section ] reduce [ reduce:code_section ] }
         [ [ #identifier [ code ] ] [ #identifier identifier ] [ #operator [ open_curly ] ] [ #list blocks [ #template [ code_block ] ] ] [ #operator [ close_curly ] ] ]
         [ [ #identifier [ code ] ] [ #identifier identifier ] [ #operator [ open_curly ] ]                                               [ #operator [ close_curly ] ] ]
         [ [ #identifier [ code ] ]                            [ #operator [ open_curly ] ] [ #list blocks [ #template [ code_block ] ] ] [ #operator [ close_curly ] ] ]
         [ [ #identifier [ code ] ]                            [ #operator [ open_curly ] ]                                               [ #operator [ close_curly ] ] ]
     ]
 
-    memory_block [ { register [ register:block ] resolve [ resolve:block ] }
+    memory_block [ { register [ register:block ] reduce [ reduce:block ] }
         [ [ #template data [ label    ] ] ]
         [ [ #template data [ instance ] ] ]
     ]
 
-    memory_section [ { register [ register:memory_section ] resolve [ resolve:memory_section ] }
+    memory_section [ { register [ register:memory_section ] resolve [ resolve:memory_section ] reduce [ reduce:memory_section ] }
         [ [ #identifier [ memory ] ] [ #identifier identifier ] [ #operator [ open_curly ] ] [ #list blocks [ #template [ memory_block ] ] ] [ #operator [ close_curly ] ] ]
         [ [ #identifier [ memory ] ] [ #identifier identifier ] [ #operator [ open_curly ] ]                                                 [ #operator [ close_curly ] ] ]
         [ [ #identifier [ memory ] ]                            [ #operator [ open_curly ] ] [ #list blocks [ #template [ memory_block ] ] ] [ #operator [ close_curly ] ] ]
@@ -182,7 +180,7 @@
         [ [ #template data [ memory_map     ] ] ]
     ]
 
-    #top [ { define [ define:top ] indent [ indent:top ] register [ register:top ] resolve [ resolve:top ] generate [ generate:top ] }
+    #top [ { define [ define:top ] indent [ indent:top ] register [ register:top ] resolve [ resolve:top ] reduce [ reduce:top ] generate [ generate:top ] }
         [ [ #list sections [ #template [ section ] ] ] ]
         [                                              ]
     ]

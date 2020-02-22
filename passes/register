@@ -2,8 +2,6 @@
 
     register {
 
-        valid_registers [ data memory operant ]
-
         specification [ [ #single self ]
 
             @ verify the register count and if no registers are supposed to be added, dont do anything
@@ -13,7 +11,7 @@
             #end
 
             @ make sure that the register type is valid
-            #if             [ #data #not_contains ] [ #function:register:valid_registers ] [ #scope:self:register ]
+            #if             [ #data #not_contains ] [ #root:valid_registers ] [ #scope:self:register ]
             #print_line     [ #root:color:red ] [ #data "\ninvalid register type " ] [ #scope:self:register ] [ #root:color:none ]
             #call           [ #function:position:print ] [ #root:color:red ] [ #scope:self:#position:register ]
             #print_line
@@ -30,9 +28,8 @@
             #end
 
             @ add the register type and count to the modules list
-            #keyword        [ #scope:self:register ]
-            #list           [ #last ] [ #scope:self:count ]
-            #insert         [ #build:modules ] [ #data -1 ] [ #last ]
+            #map            [ #data register ] [ #scope:self:register ] [ #data count ] [ #scope:self:count ]
+            #append         [ #build:modules ] [ #last ]
             #modify         [ #data #build:modules ] [ #last ]
             #return         [ #scope:self ]
         ]
@@ -66,7 +63,7 @@
             #end
 
             @ make sure that the module type is valid
-            #if             [ #data #not_present ] [ #root:module_list ] [ #scope:self:module ]
+            #if             [ #data #not_present ] [ #root:module_description ] [ #scope:self:module ]
             #print_line     [ #root:color:red ] [ #data "\ninvalid module " ] [ #scope:self:module ] [ #root:color:none ]
             #call           [ #function:position:print ] [ #root:color:red ] [ #scope:self:#position:module ]
             #print_line
@@ -83,8 +80,8 @@
             #end
 
             @ add the module type and count to the modules list
-            #list           [ #scope:self:module ] [ #scope:self:count ] [ #scope:self:#position:module ]
-            #insert         [ #build:modules ] [ #data -1 ] [ #last ]
+            #map            [ #data module ] [ #scope:self:module ] [ #data count ] [ #scope:self:count ] [ #data position ] [ #scope:self:#position:module ]
+            #append         [ #build:modules ] [ #last ]
             #modify         [ #data #build:modules ] [ #last ]
             #return         [ #scope:self ]
         ]
@@ -191,7 +188,7 @@
             #if             [ #data #present ] [ #build:labels ] [ #scope:self:name ]
             #print_line     [ #root:color:red ] [ #data "\nprevious definition of label " ] [ #scope:self:name ] [ #root:color:none ]
             #index          [ #build:labels ] [ #scope:self:name ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #last:4 ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #last:position ]
             #print_line     [ #root:color:red ] [ #data "\nredefined here" ] [ #root:color:none ]
             #call           [ #function:position:print ] [ #root:color:red ] [ #scope:self:#position:name ]
             #print_line
@@ -199,7 +196,7 @@
             #end
 
             @ create entry for label and add it to #build:labels
-            #list           [ #scope:index ] [ #scope:offset ] [ #data {} ] [ #scope:self:#position:name ]
+            #map            [ #data section ] [ #scope:index ] [ #data offset ] [ #scope:offset ] [ #data sublabels ] [ #data { } ] [ #data position ] [ #scope:self:#position:name ]
             #insert         [ #build:labels ] [ #scope:self:name ] [ #last ]
             #modify         [ #data #build:labels ] [ #last ]
             #modify         [ #data #build:active_label ] [ #scope:self:name ]
@@ -216,16 +213,16 @@
             #end
 
             @ get the sublabel entry of the active label
-            #path           [ #data #build:labels ] [ #build:active_label ] [ #data 3 ]
+            #path           [ #data #build:labels ] [ #build:active_label ] [ #data sublabels ]
             #set            [ #data path ] [ #last ]
             #resolve        [ #scope:path ]
             #set            [ #data entry ] [ #last ]
 
             @ make sure that sublabel is unique
-            #if             [ #data #present ] [ #last ] [ #scope:self:identifier ]
+            #if             [ #data #present ] [ #scope:entry ] [ #scope:self:identifier ]
             #print_line     [ #root:color:red ] [ #data "\nprevious definition of sublabel " ] [ #scope:self:identifier ] [ #root:color:none ]
             #index          [ #scope:entry ] [ #scope:self:identifier ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #last:2 ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #last:position ]
             #print_line     [ #root:color:red ] [ #data "\nredefined here" ] [ #root:color:none ]
             #call           [ #function:position:print ] [ #root:color:red ] [ #scope:self:#position:identifier ]
             #print_line
@@ -233,7 +230,7 @@
             #end
 
             @ create entry for sublabel and add it to the entry of the active label
-            #list           [ #scope:offset ] [ #scope:self:#position:identifier ]
+            #map            [ #data offset ] [ #scope:offset ] [ #data position ] [ #scope:self:#position:identifier ]
             #insert         [ #scope:entry ] [ #scope:self:identifier ] [ #last ]
             #modify         [ #scope:path ] [ #last ]
             #end
@@ -245,53 +242,72 @@
             #return         [ #last ]
         ]
 
-        section [ [ #single self ] [ #single index ] [ #single type ]
+        section [ [ #single section ] [ #single index ] [ #single type ]
 
             @ debug message
             #if             [ #data #true ] [ #root:debug ]
-            #if             [ #data #present ] [ #scope:self ] [ #data identifier ]
-            #call           [ #function:print:debug ] [ #data "registering " ] [ #root:color:magenta ] [ #scope:type ] [ #data " section" ] [ #root:color:none ] [ #data " with name " ] [ #root:color:magenta ] [ #scope:self:identifier ] [ #root:color:none ]
+            #if             [ #data #present ] [ #scope:section ] [ #data identifier ]
+            #call           [ #function:print:debug ] [ #data "registering " ] [ #root:color:magenta ] [ #scope:type ] [ #data " section" ] [ #root:color:none ] [ #data " with name " ] [ #root:color:magenta ] [ #scope:section:identifier ] [ #root:color:none ]
             #else
             #call           [ #function:print:debug ] [ #data "registering " ] [ #root:color:magenta ] [ #scope:type ] [ #data " section" ] [ #root:color:none ] [ #data " without name" ]
             #end
             #end
 
-            @ set the active label to none and get the section path for the passed type
+            @ set the active label to none and get the section path
             #modify         [ #data #build:active_label ] [ #data none ]
             #identifier     [ #scope:type ] [ #data _sections ]
             #path           [ #data #build ] [ #last ]
             #set            [ #data path ] [ #last ]
-
-            @
-            #if             [ #data #present ] [ #scope:self ] [ #data blocks ]
-            #set            [ #data offset ] [ #data 0 ]
-            #iterate        [ #scope:self:blocks ]
-            #pass           [ #last:instance:part ] [ #scope:index ] [ #scope:offset ]
-            #add            [ #scope:offset ] [ #last ]
-            #set            [ #data offset ] [ #last ]
-            #end
-            #else
-            #set            [ #data offset ] [ #data 0 ]
-            #end
-            #insert         [ #scope:self ] [ #data size ] [ #scope:offset ]
-            #modify         [ #data #scope:self ] [ #last ]
-
-            @
-            #if             [ #data #present ] [ #scope:self ] [ #data identifier ]
-            #set            [ #data identifier ] [ #scope:self:identifier ]
-            #else
-            #set            [ #data identifier ] [ #data #default ]
-            #end
-
-            @
-            #list           [ #scope:identifier ] [ #scope:index ]
+            #resolve        [ #scope:path ]
             #set            [ #data entry ] [ #last ]
 
-            @
-            #resolve        [ #scope:path ]
-            #insert         [ #last ] [ #data -1 ] [ #scope:entry ]
+            @ if the section has blocks, pass them to calculate the section width
+            #if             [ #data #present ] [ #scope:section ] [ #data blocks ]
+            #set            [ #data section_size ] [ #data 0 ]
+            #iterate        [ #scope:section:blocks ]
+            #pass           [ #last:instance:part ] [ #scope:index ] [ #scope:section_size ]
+            #add            [ #scope:section_size ] [ #last ]
+            #set            [ #data section_size ] [ #last ]
+            #end
+
+            @ if the section has no blocks, section width is 0
+            #else
+            #set            [ #data section_size ] [ #data 0 ]
+            #end
+
+            @ set the section size
+            #insert         [ #scope:section ] [ #data size ] [ #scope:section_size ]
+            #modify         [ #data #scope:section ] [ #last ]
+
+            @ if th section is named
+            #if             [ #data #present ] [ #scope:section ] [ #data identifier ]
+
+            @ make sure that section name is unique
+            #if             [ #data #present ] [ #scope:entry ] [ #scope:section:identifier ]
+            #print_line     [ #root:color:red ] [ #data "\nprevious definition of " ] [ #scope:type ] [ #data " section " ] [ #scope:section:identifier ] [ #root:color:none ]
+            #index          [ #scope:entry ] [ #scope:section:identifier ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #last:position ]
+            #print_line     [ #root:color:red ] [ #data "\nredefined here" ] [ #root:color:none ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:section:#position:identifier ]
+            #print_line
+            #error          [ #scope:type ] [ #data " section names may only be used once" ]
+            #end
+
+            @ save entry
+            #map            [ #data index ] [ #scope:index ] [ #data position ] [ #scope:section:#position:identifier ]
+            #insert         [ #scope:entry ] [ #scope:section:identifier ] [ #last ]
             #modify         [ #scope:path ] [ #last ]
-            #return         [ #scope:self ]
+
+            @ if the section is unnamed
+            #else
+            #index          [ #scope:entry ] [ #data #default ]
+            #append         [ #last ] [ #scope:index ]
+            #overwrite      [ #scope:entry ] [ #data #default ] [ #last ]
+            #modify         [ #scope:path ] [ #last ]
+            #end
+
+            @ return modified section
+            #return         [ #scope:section ]
         ]
 
         code_section [ [ #single self ] [ #single index ]
@@ -310,48 +326,57 @@
 
         chunk_piece [ [ #single self ] [ #single entry ]
 
-            @
+            @ if piece is a named section
             #if             [ #data #present ] [ #scope:self ] [ #data identifier ]
-            #list           [ #scope:self:identifier ] [ #scope:self:#position:identifier ]
-            #insert         [ #scope:entry ] [ #data -1 ] [ #last ]
+            #map            [ #data identifier ] [ #scope:self:identifier ] [ #data position ] [ #scope:self:#position:identifier ]
+            #append         [ #scope:entry ] [ #last ]
             #return         [ #last ]
-            #else           [ #data #present ] [ #scope:self ] [ #data offset ]
-            #list           [ #scope:self:offset ] [ #scope:self:#position:offset ]
-            #insert         [ #scope:entry ] [ #data -1 ] [ #last ]
+
+            @ if piece is for #default sections
+            #else           [ #data #equals ] [ #scope:self:offset ] [ #data #default ]
+            #map            [ #data default ] [ #scope:self:offset ] [ #data position ] [ #scope:self:#position:offset ]
+            #append         [ #scope:entry ] [ #last ]
+            #return         [ #last ]
+
+            @ if piece is offset
+            #else
+            #map            [ #data offset ] [ #scope:self:offset ] [ #data position ] [ #scope:self:#position:offset ]
+            #append         [ #scope:entry ] [ #last ]
             #return         [ #last ]
             #end
         ]
 
         chunk [ [ #single self ] [ #single chunks ]
 
-            @
+            @ if the chunk has a base offset
             #if             [ #data #present ] [  #scope:self ] [ #data base ]
-            #list           [ #scope:self:base ] [ #scope:self:#position:base ]
+            #map            [ #data base ] [ #scope:self:base ] [ #data position ] [ #scope:self:#position:base ]
             #list           [ #last ]
             #set            [ #data entry ] [ #last ]
+
+            @ if the chunk does not have a base offset
             #else
-            #set            [ #data entry ] [ #data [] ]
+            #set            [ #data entry ] [ #data [ ] ]
             #end
 
-            @
+            @ pass all pieces and fill entry list
             #iterate        [ #scope:self:pieces ]
             #pass           [ #last:instance ] [ #scope:entry ]
             #set            [ #data entry ] [ #last:part ]
             #end
 
-            @
-            #insert         [ #scope:chunks ] [ #data -1 ] [ #scope:entry ]
+            @ append chunks to the list
+            #append         [ #scope:chunks ] [ #scope:entry ]
             #return         [ #last ]
-
         ]
 
         map [ [ #single type ] [ #single map ]
 
-            @
+            @ get key of map
             #identifier     [ #scope:type ] [ #data _map ]
             #set            [ #data index ] [ #last ]
 
-            @ make sure that the sections are not already mapped
+            @ make sure that there is not other map
             #if             [ #data #present ] [ #build ] [ #scope:index ]
             #print_line     [ #root:color:red ] [ #data "\nprevious " ] [ #scope:type ] [ #data " map" ] [ #root:color:none ]
             #index          [ #build ] [ #scope:index ]
@@ -362,19 +387,19 @@
             #error          [ #scope:type ] [ #data " sections may only be mapped once" ]
             #end
 
-            @
+            @ debug message
             #if             [ #data #true ] [ #root:debug ]
             #call           [ #function:print:debug ] [ #data "registering " ] [ #root:color:magenta ] [ #scope:type ] [ #data " map" ]  [ #root:color:none ]
             #end
 
-            @
-            #set            [ #data chunks ] [ #data [] ]
+            @ pass all chunks and collect them in a list
+            #set            [ #data chunks ] [ #data [ ] ]
             #iterate        [ #scope:map:chunks ]
             #pass           [ #last:instance:part ] [ #scope:chunks ]
             #set            [ #data chunks ] [ #last ]
             #end
 
-            @
+            @ add map entry to #build
             #map            [ #data chunks ] [ #scope:chunks ] [ #data position ] [ #scope:map:#position:identifier ]
             #insert         [ #build ] [ #scope:index ] [ #last ]
             #modify         [ #data #build ] [ #last ]
@@ -397,9 +422,55 @@
             #call           [ #function:print_pass ] [ #data "register" ]
             #end
 
+            @ validate the module descriptions
+            #iterate        [ #root:module_description ]
+            #set            [ #data description ] [ #last ]
+            #if             [ #data #present ] [ #scope:description:instance ] [ #data drives ]
+
+            @ make sure that the module names are not the same as any register type
+            #if             [ #data #contains ] [ #root:valid_registers ] [ #scope:description:selector ]
+            #error          [ #data "driving modules may not be called " ] [ #scope:description:selector ]
+            #end
+
+            @ make sure that the driven resources are valid
+            #iterate        [ #scope:description:instance:drives ]
+            #if             [ #data #not_present ] [ #root:resource ] [ #last:instance ]
+            #error          [ #data "description of " ] [ #scope:description:selector ] [ #data " drives unknown resource called " ] [ #last:instance ]
+            #end
+            #end
+            #end
+
+            @ make sure that the used resources are valid
+            #if             [ #data #present ] [ #scope:description:instance ] [ #data uses ]
+            #iterate        [ #scope:description:instance:uses ]
+            #if             [ #data #not_present ] [ #root:resource ] [ #last:instance ]
+            #error          [ #data "description of " ] [ #scope:description:selector ] [ #data " uses unknown resource called " ] [ #last:instance ]
+            #end
+            #end
+            #end
+
+            @ make sure that the description has registers
+            #if             [ #data #not_present ] [ #scope:description:instance ] [ #data registers ]
+            #error          [ #data "description of " ] [ #scope:description:selector ] [ #data " is missing the field registers" ]
+            #end
+
+            @ make sure that the description has name
+            #if             [ #data #not_present ] [ #scope:description:instance ] [ #data name ]
+            #error          [ #data "description of " ] [ #scope:description:selector ] [ #data " is missing the field name" ]
+            #end
+
+            @ make sure that the description has source
+            #if             [ #data #not_present ] [ #scope:description:instance ] [ #data source ]
+            #error          [ #data "description of " ] [ #scope:description:selector ] [ #data " is missing the field source" ]
+            #end
+            #end
+
             @ create maps for pass
-            #insert         [ #build ] [ #data modules ] [ #data [] ]
+            #insert         [ #build ] [ #data modules ] [ #data [ ] ]
             #insert         [ #last ] [ #data active_label ] [ #data none ]
+            #insert         [ #last ] [ #data code_sections ] [ #data { #default [ ] } ]
+            #insert         [ #last ] [ #data memory_sections ] [ #data { #default [ ] } ]
+            #insert         [ #last ] [ #data labels ] [ #data { } ]
             #modify         [ #data #build ] [ #last ]
 
             @ if present, pass sections
