@@ -366,13 +366,13 @@
             #iterate        [ #scope:pool ]
 
             @ #default section
-            #if             [ #data #keyword ] [ #last:instance ]
+            #if             [ #data #keyword ] [ #last:selector ]
             #call           [ #function:resolve:move_default ] [ #scope:top ] [ #scope:pool:#default ]
             #set            [ #data top ] [ #last ]
 
             @ named section
             #else
-            #call           [ #function:resolve:move_section ] [ #scope:top ] [ #scope:type ] [ #scope:pool ] [ #last:instance ] [ #data none ]
+            #call           [ #function:resolve:move_section ] [ #scope:top ] [ #scope:type ] [ #scope:pool ] [ #last:selector ] [ #data none ]
             #set            [ #data top ] [ #last ]
             #end
             #end

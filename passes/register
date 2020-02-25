@@ -108,7 +108,9 @@
             #modify         [ #data #build ] [ #last ]
 
             @ pass specifications and return
+            #if             [ #data #present ] [ #scope:self ] [ #data specifications ]
             #pass           [ #scope:self:specifications ]
+            #end
             #return         [ #scope:self ]
         ]
 

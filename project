@@ -194,7 +194,6 @@ directory {
         #if             [ #data #true ] [ #scope:configuration:debug ]
         #call           [ #function:format:tag ] [ #root:color:magenta ] [ #data "debug" ]
         #print          [ #last ] [ #data " print build map? (y, N) " ]
-        #flush
         #input
         #if             [ #data #equals ] [ #last ] [ #data "y" ]
         #call           [ #function:output_debug ] [ #scope:build ]
