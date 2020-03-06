@@ -104,34 +104,13 @@ directory {
         #call           [ #function:print:debug ] [ #data "libraries loaded" ]
         #end
 
-        @ create pass hanlers for common top
-        #set            [ #data pass_handlers ] [ #data { } ]
-        #iterate        [ #root:pipeline ]
-        #set            [ #data pass ] [ #last:instance ]
-        #path           [ #scope:pass ] [ #data top ]
-        #list           [ #last ]
-        #insert         [ #scope:pass_handlers ] [ #scope:pass ] [ #last ]
-        #set            [ #data pass_handlers ] [ #last ]
-        #end
-
-        @ tokenize and parse all source files
-        #set            [ #data sections ] [ #data [ ] ]
-        #set            [ #data positions ] [ #data [ ] ]
+        @ tokenize and parse all source files and combine them
+        #set            [ #data top ] [ #data { } ]
         #iterate        [ #scope:configuration:files ]
         #compile_file   [ #scope:compiler ] [ #last:instance ]
-        #if             [ #data #present ] [ #last ] [ #data sections ]
-        #set            [ #data build ] [ #last ]
-        #merge          [ #scope:sections ] [ #scope:build:sections ]
-        #set            [ #data sections ] [ #last ]
-        #merge          [ #scope:positions ] [ #scope:build:#position:sections ]
-        #set            [ #data positions ] [ #last ]
-        #end
-        #end
-
-        @ create new common top
-        #map            [ #data sections ] [ #scope:positions ]
-        #map            [ #data #pass ] [ #scope:pass_handlers ] [ #data #position ] [ #last ] [ #data sections ] [ #scope:sections ]
+        #merge          [ #scope:top ] [ #last ]
         #set            [ #data top ] [ #last ]
+        #end
 
         @ debug message
         #if             [ #data #true ] [ #scope:configuration:debug ]
