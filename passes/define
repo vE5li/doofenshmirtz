@@ -6,7 +6,7 @@
 
             @ debug message
             #if             [ #data #true ] [ #root:debug ]
-            #call           [ #function:print:debug ] [ #data "defining directive " ] [ #root:color:magenta ] [ #scope:self:identifier ] [ #root:color:none ]
+            #call           [ #function:#print:debug ] [ #data "defining directive " ] [ #root:#color:magenta ] [ #scope:self:identifier ] [ #root:#color:none ]
             #end
 
             @ make sure the directive is not already defined
@@ -15,26 +15,26 @@
             @ if previous directive is a compiler directive
             #index          [ #build:directives ] [ #scope:self:identifier ]
             #if             [ #data #equals ] [ #last:2 ] [ #data #none ]
-            #print_line     [ #root:color:red ] [ #data "\nredefininition of compiler constant" ] [ #root:color:none ]
+            #print_line     [ #root:#color:red ] [ #data "\nredefininition of compiler constant" ] [ #root:#color:none ]
 
             @ if previous directive is user directive
             #else
-            #print_line     [ #root:color:red ] [ #data "\nprevious definition of directive " ] [ #scope:self:identifier ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #last:2 ]
-            #print_line     [ #root:color:red ] [ #data "\nredefined here" ] [ #root:color:none ]
+            #print_line     [ #root:#color:red ] [ #data "\nprevious definition of directive " ] [ #scope:self:identifier ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #last:2 ]
+            #print_line     [ #root:#color:red ] [ #data "\nredefined here" ] [ #root:#color:none ]
             #end
 
             @ print directive to be defined
             #range          [ #scope:self:#position:identifier ] [ #scope:self:#position:value ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #last ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #last ]
             #print_line
             #error          [ #data "directive " ] [ #scope:self:identifier ] [ #data " may only be defined once" ]
             #end
 
             @ check naming scheme
             #if             [ #data #uppercase ] [ #scope:self:identifier:1 ]
-            #print_line     [ #root:color:yellow ] [ #data "\ndirectives should start with a lowercase character" ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:yellow ] [ #scope:self:#position:identifier ]
+            #print_line     [ #root:#color:yellow ] [ #data "\ndirectives should start with a lowercase character" ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:yellow ] [ #scope:self:#position:identifier ]
             #print_line
             #end
 

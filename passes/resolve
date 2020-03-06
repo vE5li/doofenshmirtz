@@ -47,8 +47,8 @@
 
             @ make sure that operants are accessable
             #if             [ #data #zero ] [ #build:counter:operant ]
-            #print_line     [ #root:color:red ] [ #data "\ninvalid immediate" ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:position ]
+            #print_line     [ #root:#color:red ] [ #data "\ninvalid immediate" ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:position ]
             #print_line
             #error          [ #data "immediates can not be moved since the core does not have any operant registers" ]
             #end
@@ -65,8 +65,8 @@
             @ if the instance is not part of the operants, make sure that there are slots left
             #else
             #if             [ #data #not_smaller ] [ #scope:operants ] [ #build:counter:operant ]
-            #print_line     [ #root:color:red ] [ #data "\noperant regsiter overlow" ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:position ]
+            #print_line     [ #root:#color:red ] [ #data "\noperant regsiter overlow" ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:position ]
             #print_line
             #error          [ #data "only " ] [ #build:counter:operant ] [ #data " different immediates may be moved per instruction" ]
             #end
@@ -95,8 +95,8 @@
             @ label, make sure it exists
             #else           [ #data #present ] [ #scope:self ] [ #data name ]
             #if             [ #data #not_present ] [ #build:labels ] [ #scope:self:name ]
-            #print_line     [ #root:color:red ] [ #data "\nunknown label " ] [ #scope:self:name ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:self:#position:name ]
+            #print_line     [ #root:#color:red ] [ #data "\nunknown label " ] [ #scope:self:name ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:self:#position:name ]
             #print_line
             #error          [ #data "label " ] [ #scope:self:name ] [ #data " is not defined" ]
             #end
@@ -104,8 +104,8 @@
             @ make sure that the label is mapped
             #index          [ #build:labels ] [ #scope:self:name ]
             #if             [ #data #equals ] [ #last ] [ #data unmapped ]
-            #print_line     [ #root:color:red ] [ #data "\nunmapped label " ] [ #scope:self:name ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:self:#position:name ]
+            #print_line     [ #root:#color:red ] [ #data "\nunmapped label " ] [ #scope:self:name ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:self:#position:name ]
             #print_line
             #error          [ #data "only labels inside sections that are mapped have a value" ]
             #end
@@ -118,8 +118,8 @@
             #else           [ #data #present ] [ #scope:self ] [ #data sublabel ]
             #index          [ #build:labels ] [ #build:active_label ]
             #if             [ #data #not_present ] [ #last:sublabels ] [ #scope:self:sublabel ]
-            #print_line     [ #root:color:red ] [ #data "\nunknown sublabel " ] [ #scope:self:sublabel ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:self:#position:sublabel ]
+            #print_line     [ #root:#color:red ] [ #data "\nunknown sublabel " ] [ #scope:self:sublabel ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:self:#position:sublabel ]
             #print_line
             #error          [ #data "sublabel " ] [ #scope:self:sublabel ] [ #data " is not defined" ]
             #end
@@ -141,8 +141,8 @@
 
             @ make sure register group exists
             #if             [ #data #not_present ] [ #build:module_lookup ] [ #scope:self:steps:1:part ]
-            #print_line     [ #root:color:red ] [ #data "\nunknown register group " ] [ #scope:self:steps:1:part ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:self:steps:1:position:part ]
+            #print_line     [ #root:#color:red ] [ #data "\nunknown register group " ] [ #scope:self:steps:1:part ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:self:steps:1:position:part ]
             #print_line
             #error          [ #data "register group " ] [ #scope:self:sublabel ] [ #data " is not part of the core" ]
             #end
@@ -153,8 +153,8 @@
 
             @ make sure register exists
             #if             [ #data #not_present ] [ #scope:group ] [ #scope:self:steps:2:part ]
-            #print_line     [ #root:color:red ] [ #data "\ninvalid register " ] [ #scope:self:steps:2:part ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:self:steps:2:position:part ]
+            #print_line     [ #root:#color:red ] [ #data "\ninvalid register " ] [ #scope:self:steps:2:part ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:self:steps:2:position:part ]
             #print_line
             #error          [ #data "register " ] [ #scope:self:sublabel ] [ #data " is not part of " ] [ #scope:self:steps:1:part ]
             #end
@@ -182,8 +182,8 @@
 
             @ make sure that register is writable
             #if             [ #data #not_present ] [ #scope:register_entry ] [ #data sources ]
-            #print_line     [ #root:color:red ] [ #data "\ninvalid destination " ] [ #scope:register ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:self:#position:register ]
+            #print_line     [ #root:#color:red ] [ #data "\ninvalid destination " ] [ #scope:register ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:self:#position:register ]
             #print_line
             #error          [ #data "register may only be read from" ]
             #end
@@ -274,10 +274,10 @@
 
             @ make sure that the section has not been mapped before
             #if             [ #data #present ] [ #scope:section_entry ] [ #data mapped ]
-            #print_line     [ #root:color:red ] [ #data "\nprevious relocation of " ] [ #scope:name ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:section_entry:mapped ]
-            #print_line     [ #root:color:red ] [ #data "\nrelocated again here" ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:position ]
+            #print_line     [ #root:#color:red ] [ #data "\nprevious relocation of " ] [ #scope:name ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:section_entry:mapped ]
+            #print_line     [ #root:#color:red ] [ #data "\nrelocated again here" ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:position ]
             #print_line
             #error          [ #scope:type ] [ #data " sections may only be mapped once" ]
             #end
@@ -317,10 +317,10 @@
 
             @ make sure #default has not been mapped before
             #if             [ #data #present ] [ #scope ] [ #data default_mapped ]
-            #print_line     [ #root:color:red ] [ #data "\nprevious relocation of default " ] [ #scope:type ] [ #data " sections" ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:default_mapped ]
-            #print_line     [ #root:color:red ] [ #data "\nrelocated again here" ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:iterator:position ]
+            #print_line     [ #root:#color:red ] [ #data "\nprevious relocation of default " ] [ #scope:type ] [ #data " sections" ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:default_mapped ]
+            #print_line     [ #root:#color:red ] [ #data "\nrelocated again here" ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:iterator:position ]
             #print_line
             #error          [ #data "default " ] [ #scope:type ] [ #data " section may only be mapped once" ]
             #end
@@ -333,8 +333,8 @@
             @ if chunk is not #default, make sure it exists
             #else           [ #data #present ] [ #scope:iterator ] [ #data identifier ]
             #if             [ #data #not_present ] [ #scope:pool ] [ #scope:iterator:identifier ]
-            #print_line     [ #root:color:red ] [ #data "\nunknown " ] [ #scope:type ] [ #data " section " ]  [ #scope:iterator:identifier ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:iterator:position ]
+            #print_line     [ #root:#color:red ] [ #data "\nunknown " ] [ #scope:type ] [ #data " section " ]  [ #scope:iterator:identifier ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:iterator:position ]
             #print_line
             #error          [ #scope:type ] [ #data " section " ] [ #scope:iterator:identifier ] [ #data " is not defined" ]
             #end
@@ -346,8 +346,8 @@
             @ if chunk is the base
             #else           [ #data #present ] [ #scope:iterator ] [ #data base ]
             #if             [ #data #smaller ] [ #scope:iterator:base ] [ #scope:top:size ]
-            #print_line     [ #root:color:red ] [ #data "\noverlap at address " ] [ #scope:iterator:base ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:iterator:position ]
+            #print_line     [ #root:#color:red ] [ #data "\noverlap at address " ] [ #scope:iterator:base ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:iterator:position ]
             #print_line
             #error          [ #scope:type ] [ #data " sections may not overlap" ]
             #end
@@ -411,10 +411,10 @@
             #set            [ #data previous ] [ #last ]
 
             @ if the previous driver is a different module
-            #print_line     [ #root:color:red ] [ #data "\nprevious driver of " ] [ #scope:resource ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:previous:position ]
-            #print_line     [ #root:color:red ] [ #data "\nsecond driver here" ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:position ]
+            #print_line     [ #root:#color:red ] [ #data "\nprevious driver of " ] [ #scope:resource ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:previous:position ]
+            #print_line     [ #root:#color:red ] [ #data "\nsecond driver here" ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:position ]
             #print_line
 
             @ if the previous driver is the same module
@@ -569,7 +569,7 @@
 
             @ debug message
             #if             [ #data #true ] [ #root:debug ]
-            #call           [ #function:print:debug ] [ #data "creating module lookup" ]
+            #call           [ #function:#print:debug ] [ #data "creating module lookup" ]
             #end
 
             @ iterate modules to be created
@@ -593,7 +593,7 @@
 
             @ debug message
             #if             [ #data #true ] [ #root:debug ]
-            #call           [ #function:print:debug ] [ #data "relocating code and memory sections" ]
+            #call           [ #function:#print:debug ] [ #data "relocating code and memory sections" ]
             #end
 
             @ remap the code and memory sections (if there are any)
@@ -604,7 +604,7 @@
 
             @ debug message
             #if             [ #data #true ] [ #root:debug ]
-            #call           [ #function:print:debug ] [ #data "relocating labels and sublabels" ]
+            #call           [ #function:#print:debug ] [ #data "relocating labels and sublabels" ]
             #end
 
             @ relocate labels and sublabels
@@ -637,13 +637,13 @@
 
             @ display warning if the core has no code
             #if             [ #data #zero ] [ #scope:self:code_size ]
-            #call           [ #function:print:warning ] [ #data "no executable code specified, core might not do anything" ]
+            #call           [ #function:#print:warning ] [ #data "no executable code specified, core might not do anything" ]
             #end
 
             @ display a warning if we have something in memory but dont have memory registers
             #if             [ #data #zero ] [ #build:counter:memory ]
             #if             [ #data #not_zero ] [ #scope:self:memory_size ]
-            #call           [ #function:print:warning ] [ #data "program has data in memory but no memory registers to access it" ]
+            #call           [ #function:#print:warning ] [ #data "program has data in memory but no memory registers to access it" ]
             #end
             #end
 

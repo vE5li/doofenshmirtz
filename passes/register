@@ -12,8 +12,8 @@
 
             @ make sure that the register type is valid
             #if             [ #data #not_contains ] [ #root:valid_registers ] [ #scope:self:register ]
-            #print_line     [ #root:color:red ] [ #data "\ninvalid register type " ] [ #scope:self:register ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:self:#position:register ]
+            #print_line     [ #root:#color:red ] [ #data "\ninvalid register type " ] [ #scope:self:register ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:self:#position:register ]
             #print_line
             #error          [ #data "valid register types are data, memory and operant" ]
             #end
@@ -21,9 +21,9 @@
             @ debug message
             #if             [ #data #true ] [ #root:debug ]
             #if             [ #data #equals ] [ #scope:self:count ] [ #data 1 ]
-            #call           [ #function:print:debug ] [ #data "adding " ] [ #scope:self:register ] [ #data " register" ]
+            #call           [ #function:#print:debug ] [ #data "adding " ] [ #scope:self:register ] [ #data " register" ]
             #else
-            #call           [ #function:print:debug ] [ #data "adding " ] [ #scope:self:count ] [ #data " " ] [ #scope:self:register ] [ #data " registers" ]
+            #call           [ #function:#print:debug ] [ #data "adding " ] [ #scope:self:count ] [ #data " " ] [ #scope:self:register ] [ #data " registers" ]
             #end
             #end
 
@@ -39,16 +39,16 @@
             @ make sure that scope:self:count is an integer
             #if             [ #data #not_integer ] [ #scope:count ]
             #serialize      [ #scope:count ]
-            #print_line     [ #root:color:red ] [ #data "\ninvalid " ] [ #scope:type ] [ #data " count " ] [ #last ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:position ]
+            #print_line     [ #root:#color:red ] [ #data "\ninvalid " ] [ #scope:type ] [ #data " count " ] [ #last ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:position ]
             #print_line
             #error          [ #scope:type ] [ #data " count may only be an integer" ]
             #end
 
             @ make sure that count is not smaller that 0
             #if             [ #data #smaller ] [ #scope:count ] [ #data 0 ]
-            #print_line     [ #root:color:red ] [ #data "\ninvalid " ] [ #scope:type ] [ #data " count " ] [ #scope:count ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:position ]
+            #print_line     [ #root:#color:red ] [ #data "\ninvalid " ] [ #scope:type ] [ #data " count " ] [ #scope:count ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:position ]
             #print_line
             #error          [ #scope:type ] [ #data " count may not be less than 0" ]
             #end
@@ -64,8 +64,8 @@
 
             @ make sure that the module type is valid
             #if             [ #data #not_present ] [ #root:module_description ] [ #scope:self:module ]
-            #print_line     [ #root:color:red ] [ #data "\ninvalid module " ] [ #scope:self:module ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:self:#position:module ]
+            #print_line     [ #root:#color:red ] [ #data "\ninvalid module " ] [ #scope:self:module ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:self:#position:module ]
             #print_line
             #error          [ #scope:self:module ] [ #data " is not a registered module" ]
             #end
@@ -73,9 +73,9 @@
             @ debug message
             #if             [ #data #true ] [ #root:debug ]
             #if             [ #data #equals ] [ #scope:self:count ] [ #data 1 ]
-            #call           [ #function:print:debug ] [ #data "adding " ] [ #scope:self:module ] [ #data " module" ]
+            #call           [ #function:#print:debug ] [ #data "adding " ] [ #scope:self:module ] [ #data " module" ]
             #else
-            #call           [ #function:print:debug ] [ #data "adding " ] [ #scope:self:count ] [ #data " " ] [ #scope:self:module ] [ #data " modules" ]
+            #call           [ #function:#print:debug ] [ #data "adding " ] [ #scope:self:count ] [ #data " " ] [ #scope:self:module ] [ #data " modules" ]
             #end
             #end
 
@@ -90,15 +90,15 @@
 
             @ debug message
             #if             [ #data #true ] [ #root:debug ]
-            #call           [ #function:print:debug ] [ #data "registering " ] [ #root:color:magenta ] [ #data "core section" ]  [ #root:color:none ]
+            #call           [ #function:#print:debug ] [ #data "registering " ] [ #root:#color:magenta ] [ #data "core section" ]  [ #root:#color:none ]
             #end
 
             @ make sure that the core section is unique
             #if             [ #data #present ] [ #build ] [ #data core_position ]
-            #print_line     [ #root:color:red ] [ #data "\nprevious core section" ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #build:core_position ]
-            #print_line     [ #root:color:red ] [ #data "\nredefined here" ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:self:#position:identifier ]
+            #print_line     [ #root:#color:red ] [ #data "\nprevious core section" ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #build:core_position ]
+            #print_line     [ #root:#color:red ] [ #data "\nredefined here" ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:self:#position:identifier ]
             #print_line
             #error          [ #data "core section may only be present once" ]
             #end
@@ -119,8 +119,8 @@
             @ if label is false, make sure that the value is not coming from a label
             #if             [ #data #false ] [ #scope:label ]
             #if             [ #data #not_present ] [ #scope:instance ] [ #data value ]
-            #print_line     [ #root:color:red ] [ #data "\ninvalid cast" ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:instance:#position:identifier ]
+            #print_line     [ #root:#color:red ] [ #data "\ninvalid cast" ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:instance:#position:identifier ]
             #print_line
             #error          [ #scope:name ] [ #data " may not take a value from a label" ]
             #end
@@ -133,8 +133,8 @@
             @ make sure the data type matches the type of the value
             #keyword        [ #data not_ ] [ #scope:type ]
             #if             [ #last ] [ #scope:instance:value ]
-            #print_line     [ #root:color:red ] [ #data "\nmismatched data types" ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:instance:#position:value ]
+            #print_line     [ #root:#color:red ] [ #data "\nmismatched data types" ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:instance:#position:value ]
             #print_line
             #error          [ #scope:name ] [ #data " may only take a value of type " ] [ #scope:type ]
             #end
@@ -170,8 +170,8 @@
 
             @ invalid data type
             #else
-            #print_line     [ #root:color:red ] [ #data "\ninvalid data type " ] [ #scope:self:type ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:self:#position:type ]
+            #print_line     [ #root:#color:red ] [ #data "\ninvalid data type " ] [ #scope:self:type ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:self:#position:type ]
             #print_line
             #error          [ #data "valid data types are string, character, integer, float and space" ]
             #end
@@ -188,11 +188,11 @@
 
             @ make sure that label is unique
             #if             [ #data #present ] [ #build:labels ] [ #scope:self:name ]
-            #print_line     [ #root:color:red ] [ #data "\nprevious definition of label " ] [ #scope:self:name ] [ #root:color:none ]
+            #print_line     [ #root:#color:red ] [ #data "\nprevious definition of label " ] [ #scope:self:name ] [ #root:#color:none ]
             #index          [ #build:labels ] [ #scope:self:name ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #last:position ]
-            #print_line     [ #root:color:red ] [ #data "\nredefined here" ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:self:#position:name ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #last:position ]
+            #print_line     [ #root:#color:red ] [ #data "\nredefined here" ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:self:#position:name ]
             #print_line
             #error          [ #data "label " ] [ #scope:self:name ] [ #data " may only be defined once" ]
             #end
@@ -208,8 +208,8 @@
 
             @ make sure there is a label before the sublabel
             #if             [ #data #equals ] [ #build:active_label ] [ #data none ]
-            #print_line     [ #root:color:red ] [ #data "\ninvalid sublabel " ] [ #scope:self:identifier ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:self:#position:identifier ]
+            #print_line     [ #root:#color:red ] [ #data "\ninvalid sublabel " ] [ #scope:self:identifier ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:self:#position:identifier ]
             #print_line
             #error          [ #data "sublabels may only be used after a label" ]
             #end
@@ -222,11 +222,11 @@
 
             @ make sure that sublabel is unique
             #if             [ #data #present ] [ #scope:entry ] [ #scope:self:identifier ]
-            #print_line     [ #root:color:red ] [ #data "\nprevious definition of sublabel " ] [ #scope:self:identifier ] [ #root:color:none ]
+            #print_line     [ #root:#color:red ] [ #data "\nprevious definition of sublabel " ] [ #scope:self:identifier ] [ #root:#color:none ]
             #index          [ #scope:entry ] [ #scope:self:identifier ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #last:position ]
-            #print_line     [ #root:color:red ] [ #data "\nredefined here" ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:self:#position:identifier ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #last:position ]
+            #print_line     [ #root:#color:red ] [ #data "\nredefined here" ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:self:#position:identifier ]
             #print_line
             #error          [ #data "sublabels may only be used once per label" ]
             #end
@@ -249,9 +249,9 @@
             @ debug message
             #if             [ #data #true ] [ #root:debug ]
             #if             [ #data #present ] [ #scope:section ] [ #data identifier ]
-            #call           [ #function:print:debug ] [ #data "registering " ] [ #root:color:magenta ] [ #scope:type ] [ #data " section" ] [ #root:color:none ] [ #data " with name " ] [ #root:color:magenta ] [ #scope:section:identifier ] [ #root:color:none ]
+            #call           [ #function:#print:debug ] [ #data "registering " ] [ #root:#color:magenta ] [ #scope:type ] [ #data " section" ] [ #root:#color:none ] [ #data " with name " ] [ #root:#color:magenta ] [ #scope:section:identifier ] [ #root:#color:none ]
             #else
-            #call           [ #function:print:debug ] [ #data "registering " ] [ #root:color:magenta ] [ #scope:type ] [ #data " section" ] [ #root:color:none ] [ #data " without name" ]
+            #call           [ #function:#print:debug ] [ #data "registering " ] [ #root:#color:magenta ] [ #scope:type ] [ #data " section" ] [ #root:#color:none ] [ #data " without name" ]
             #end
             #end
 
@@ -286,11 +286,11 @@
 
             @ make sure that section name is unique
             #if             [ #data #present ] [ #scope:entry ] [ #scope:section:identifier ]
-            #print_line     [ #root:color:red ] [ #data "\nprevious definition of " ] [ #scope:type ] [ #data " section " ] [ #scope:section:identifier ] [ #root:color:none ]
+            #print_line     [ #root:#color:red ] [ #data "\nprevious definition of " ] [ #scope:type ] [ #data " section " ] [ #scope:section:identifier ] [ #root:#color:none ]
             #index          [ #scope:entry ] [ #scope:section:identifier ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #last:position ]
-            #print_line     [ #root:color:red ] [ #data "\nredefined here" ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:section:#position:identifier ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #last:position ]
+            #print_line     [ #root:#color:red ] [ #data "\nredefined here" ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:section:#position:identifier ]
             #print_line
             #error          [ #scope:type ] [ #data " section names may only be used once" ]
             #end
@@ -380,18 +380,18 @@
 
             @ make sure that there is not other map
             #if             [ #data #present ] [ #build ] [ #scope:index ]
-            #print_line     [ #root:color:red ] [ #data "\nprevious " ] [ #scope:type ] [ #data " map" ] [ #root:color:none ]
+            #print_line     [ #root:#color:red ] [ #data "\nprevious " ] [ #scope:type ] [ #data " map" ] [ #root:#color:none ]
             #index          [ #build ] [ #scope:index ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #last:position ]
-            #print_line     [ #root:color:red ] [ #data "\nredefined here" ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:map:#position:identifier ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #last:position ]
+            #print_line     [ #root:#color:red ] [ #data "\nredefined here" ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:map:#position:identifier ]
             #print_line
             #error          [ #scope:type ] [ #data " sections may only be mapped once" ]
             #end
 
             @ debug message
             #if             [ #data #true ] [ #root:debug ]
-            #call           [ #function:print:debug ] [ #data "registering " ] [ #root:color:magenta ] [ #scope:type ] [ #data " map" ]  [ #root:color:none ]
+            #call           [ #function:#print:debug ] [ #data "registering " ] [ #root:#color:magenta ] [ #scope:type ] [ #data " map" ]  [ #root:#color:none ]
             #end
 
             @ pass all chunks and collect them in a list

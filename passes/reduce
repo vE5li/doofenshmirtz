@@ -160,10 +160,10 @@
             @ make sure that the destination is not already loading another value
             #index          [ #scope:instruction_entry ] [ #scope:register_entry:input ]
             #if             [ #data #not_equals ] [ #last ] [ #data noop ]
-            #print_line     [ #root:color:red ] [ #data "\nprevious move to " ] [ #scope:register ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #last:position ]
-            #print_line     [ #root:color:red ] [ #data "\nsecond move to " ] [ #scope:register ] [ #data " here" ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:position ]
+            #print_line     [ #root:#color:red ] [ #data "\nprevious move to " ] [ #scope:register ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #last:position ]
+            #print_line     [ #root:#color:red ] [ #data "\nsecond move to " ] [ #scope:register ] [ #data " here" ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:position ]
             #print_line
             #error          [ #data "only one value may be moved to any register per instruction" ]
             #end
@@ -261,7 +261,7 @@
 
             @ debug message
             #if             [ #data #true ] [ #root:debug ]
-            #call           [ #function:print:debug ] [ #data "calculating instruction width" ]
+            #call           [ #function:#print:debug ] [ #data "calculating instruction width" ]
             #end
 
             @ iterate all registers
@@ -294,7 +294,7 @@
 
             @ debug message
             #if             [ #data #true ] [ #root:debug ]
-            #call           [ #function:print:debug ] [ #data "creating empty operants" ]
+            #call           [ #function:#print:debug ] [ #data "creating empty operants" ]
             #end
 
             @ create operant slots containing none
@@ -308,7 +308,7 @@
 
             @ debug message
             #if             [ #data #true ] [ #root:debug ]
-            #call           [ #function:print:debug ] [ #data "creating empty bytecode" ]
+            #call           [ #function:#print:debug ] [ #data "creating empty bytecode" ]
             #end
 
             @ create instruction slots containing noops
@@ -322,7 +322,7 @@
 
             @ debug message
             #if             [ #data #true ] [ #root:debug ]
-            #call           [ #function:print:debug ] [ #data "creating empty memory" ]
+            #call           [ #function:#print:debug ] [ #data "creating empty memory" ]
             #end
 
             @ create memory slots containing 0

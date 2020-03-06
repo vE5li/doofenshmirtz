@@ -8,16 +8,16 @@
 
             @ ensure that the directive exists and is not already being resolved
             #if             [ #data #not_present ] [ #build:directives ] [ #scope:directive ]
-            #print_line     [ #root:color:red ] [ #data "\ninvalid directive " ] [ #scope:directive ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:position ]
+            #print_line     [ #root:#color:red ] [ #data "\ninvalid directive " ] [ #scope:directive ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:position ]
             #print_line
             #error          [ #scope:directive ] [ #data " is not a valid directive" ]
             #end
 
             @ make sure that the directive is not defined by itself
             #if             [ #data #contains ] [ #scope:checking ] [ #scope:directive ]
-            #print_line     [ #root:color:red ] [ #data "\nlooped directive " ] [ #scope:directive ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:position ]
+            #print_line     [ #root:#color:red ] [ #data "\nlooped directive " ] [ #scope:directive ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:position ]
             #print_line
             #error          [ #data "directives may not be defined by itself" ]
             #end
@@ -37,7 +37,7 @@
             @ debug message
             #if             [ #data #true ] [ #root:debug ]
             #serialize      [ #scope:entry:value ]
-            #call           [ #function:print:debug ] [ #data "directive " ] [ #root:color:magenta ] [ #scope:directive ] [ #root:color:none ] [ #data " set to " ] [ #root:color:magenta ] [ #last ] [ #root:color:none ]
+            #call           [ #function:#print:debug ] [ #data "directive " ] [ #root:#color:magenta ] [ #scope:directive ] [ #root:#color:none ] [ #data " set to " ] [ #root:#color:magenta ] [ #last ] [ #root:#color:none ]
             #end
 
             @ return newly resolved value
@@ -66,8 +66,8 @@
             @ make sure that the condition is a boolean
             #if             [ #data #not_boolean ] [ #scope:condition ]
             #type           [ #scope:condition ]
-            #print_line     [ #root:color:red ] [ #data "\nunexpected " ] [ #last ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:self:#position:condition ]
+            #print_line     [ #root:#color:red ] [ #data "\nunexpected " ] [ #last ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:self:#position:condition ]
             #print_line
             #error          [ #data "condition may only be a boolean" ]
             #end
@@ -91,8 +91,8 @@
             #return         [ #scope:source:1 ]
             #else           [ #data #not_list ] [ #scope:source:1 ]
             #type           [ #scope:source:1 ]
-            #print_line     [ #root:color:red ] [ #data "\nunexpected " ] [ #last ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:source:2 ]
+            #print_line     [ #root:#color:red ] [ #data "\nunexpected " ] [ #last ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:source:2 ]
             #print_line
             #error          [ #data "only numbers and characters may be part of an equasion" ]
             #end
@@ -221,8 +221,8 @@
 
         boolean_error [ [ #single instance ] [ #single position ]
             #type           [ #scope:instance ]
-            #print_line     [ #root:color:red ] [ #data "\nunexpected " ] [ #last ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:position ]
+            #print_line     [ #root:#color:red ] [ #data "\nunexpected " ] [ #last ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:position ]
             #print_line
             #error          [ #data "logical operators may only operate on booleans" ]
         ]
@@ -285,8 +285,8 @@
 
             @ make sure the invoked function is valid
             #if             [ #data #not_contains ] [ #function:indent:valid_functions ] [ #scope:identifier ]
-            #print_line     [ #root:color:red ] [ #data "\ninvalid function " ] [ #scope:identifier ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:position ]
+            #print_line     [ #root:#color:red ] [ #data "\ninvalid function " ] [ #scope:identifier ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:position ]
             #print_line
             #error          [ #scope:identifier ] [ #data " is not a valid compiler function" ]
             #end
