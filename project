@@ -52,6 +52,7 @@ directory {
         #set            [ #data file ] [ #last ]
         #index          [ #scope:file ] [ #data 1 ]
         #ensure         [ #data #not_equals ] [ #last ] [ #data '-' ] [ #data "invalid flag " ] [ #scope:file ]
+        #ensure         [ #data #not_contains ] [ #scope:configuration:files ] [ #scope:file ] [ #data "file " ] [ #scope:file ] [ #data " may only be passed to the compiler once" ]
         #append         [ #scope:configuration:files ] [ #scope:file ]
         #modify         [ #data #scope:configuration:files ] [ #last ]
         #end
