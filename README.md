@@ -10,6 +10,6 @@ cd nt33/untility
 ```
 
 # usage
-Source files can be passed as command line arguments, the order does not matter. The output file will be called 'output.uni' by default but you can specify another name with the ```-o``` flag. If there seems to be an error in the compiler itself, you can turn on debug mode with the ```-d``` flag.
+Source files can be passed as command line arguments, the order of which does not matter. The output file will be called ```output.uni``` by default but you can specify another name with the ```-o``` flag. If there seems to be an error in the compiler itself, you can turn on debug mode with the ```-d``` flag.
 
 For an example you can check out [this file](https://github.com/vE5li/nt33/blob/master/example/main.asm) in [nt33](https://github.com/ve5li/nt33).
