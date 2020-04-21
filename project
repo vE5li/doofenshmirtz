@@ -11,10 +11,10 @@ project {
 }
 
 directory {
-    library         "/usr/share/seamonkey/qtc8/library/"
     core            "/usr/share/seamonkey/ktl9/core/"
     pass            "/usr/share/seamonkey/ktl9/passes/"
     module          "/usr/share/seamonkey/ktl9/module/"
+    utility         "/usr/share/seamonkey/qtc8/library/"
 }
 
 #function {
@@ -88,7 +88,7 @@ directory {
 
         @ load necessary libraries
         #iterate        [ #root:dependencies ]
-        #string         [ #root:directory:library ] [ #last:instance ]
+        #string         [ #root:directory:utility ] [ #last:instance ]
         #read_map       [ #last ]
         #set            [ #data library ] [ #last ]
         #merge          [ #root ] [ #scope:library ]
