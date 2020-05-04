@@ -195,7 +195,7 @@
             #return         [ #scope:source ]
         ]
 
-        combine_equasion [ [ #single pieces ] [ #single checking ] @ TODO: better comments
+        combine_equasion [ [ #single pieces ] [ #single checking ]
 
             @ iterate the pieces
             #set            [ #data combined ] [ #data [ ] ]
@@ -297,6 +297,23 @@
             #return         [ #last ]
         ]
 
+        check_invertable [ [ #single value ]
+
+            @ if value is a boolean, integer or character return true
+            #if             [ #data #boolean ] [ #scope:value ]
+            #return         [ #data !true ]
+            #else           [ #data #integer ] [ #scope:value ]
+            #return         [ #data !true ]
+            #else           [ #data #character ] [ #scope:value ]
+            #return         [ #data !true ]
+
+            @ otherwise return the type of value
+            #else
+            #type           [ #scope:value ]
+            #return         [ #last ]
+            #end
+        ]
+
         value [ [ #single self ] [ #single checking ]
 
             @ integer
@@ -318,14 +335,34 @@
             @ negative number
             #else           [ #data #present ] [ #scope:self ] [ #data negative ]
             #pass           [ #scope:self:negative ] [ #scope:checking ]
-            @ MAKE SURE THIS IS A NUMBER
+
+            @ make sure resolved value is a number
+            #if             [ #data #not_number ] [ #last ]
+            #type           [ #last ]
+            #print_line     [ #root:#color:red ] [ #data "\nunexpected " ] [ #last ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:self:#position:negative ]
+            #print_line
+            #error          [ #data "only numbers may be negated" ]
+            #end
+
+            @ negate the resolved value and return it
             #negate         [ #last ]
             #return         [ #last ]
 
             @ inverted number or boolean
             #else           [ #data #present ] [ #scope:self ] [ #data inverted ]
             #pass           [ #scope:self:inverted ] [ #scope:checking ]
-            @ MAKE SURE THIS IS A NUMBER OR BOOLEAN
+
+            @ make sure resolved value is invertable
+            #call           [ #function:indent:check_invertable ] [ #last ]
+            #if             [ #data #not_true ] [ #last ]
+            #print_line     [ #root:#color:red ] [ #data "\nunexpected " ] [ #last ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:self:#position:inverted ]
+            #print_line
+            #error          [ #data "only integers, characters and booleans may be inverted" ]
+            #end
+
+            @ invert the resolved value and return it
             #not            [ #last ]
             #return         [ #last ]
 
