@@ -45,8 +45,12 @@
             #else           [ #data #equals ] [ #scope:self:type ] [ #data string ]
             #iterate        [ #scope:self:value ]
             #set            [ #data iterator ] [ #last ]
+            #integer        [ #scope:iterator:instance ]
+            #set            [ #data value ] [ #last ]
+
+            @ calculate correct offset and overwrite the memory slot
             #add            [ #scope:iterator:selector ] [ #scope:offset ] [ #data -1 ]
-            #overwrite      [ #build:memory ] [ #last ] [ #scope:iterator:instance ]
+            #overwrite      [ #build:memory ] [ #last ] [ #scope:value ]
             #modify         [ #data #build:memory ] [ #last ]
             #end
             #length         [ #scope:self:value ]
@@ -54,7 +58,8 @@
 
             @ character
             #else           [ #data #equals ] [ #scope:self:type ] [ #data character ]
-            #overwrite      [ #build:memory ] [ #scope:offset ] [ #scope:self:value ]
+            #integer        [ #scope:self:value ]
+            #overwrite      [ #build:memory ] [ #scope:offset ] [ #last ]
             #modify         [ #data #build:memory ] [ #last ]
             #return         [ #data 1 ]
 

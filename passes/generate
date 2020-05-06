@@ -139,6 +139,14 @@
             #multiply       [ #scope:bit_width ] [ #build:counter:register ]
             #set            [ #data bus_width ] [ #last ]
 
+            @ set memory width
+            #set            [ #data memory_size ] [ #data 1024 ]
+
+            @ set memory width
+            #logarithm      [ #scope:memory_size ] [ #data 2 ]
+            #ceiling        [ #last ]
+            #set            [ #data selector_width ] [ #last ]
+
             @ set counter width
             #length         [ #build:bytecode ]
             #logarithm      [ #last ] [ #data 2 ]
@@ -148,6 +156,8 @@
             @ generate code
             #string         [ #data "define bit_width := " ] [ #scope:bit_width ]
             #string         [ #last ] [ #data "\ndefine bus_width := " ] [ #scope:bus_width ]
+            #string         [ #last ] [ #data "\ndefine memory_size := " ] [ #scope:memory_size ]
+            #string         [ #last ] [ #data "\ndefine selector_width := " ] [ #scope:selector_width ]
             #string         [ #last ] [ #data "\ndefine counter_width := " ] [ #scope:counter_width ]
             #string         [ #last ] [ #data "\ndefine instruction_width := " ] [ #build:instruction_width ]
             #string         [ #last ] [ #data "\n\ndefine register := #bit_width:0" ]
@@ -157,10 +167,12 @@
 
             @ generate top module
             #string         [ #scope:code ] [ #data "\n\ncomponent Top(in clock) {\n" ]
+            #string         [ #last ] [ #data "    Register memory[#bit_width:0][#memory_size:0]\n" ]
             #string         [ #last ] [ #data "    Register instruction[#instruction_width:0]\n" ]
             #string         [ #last ] [ #data "    Register bytecode[#instruction_width:0][" ] [ #scope:self:code_size ] [ #data ":0]\n" ]
             #string         [ #last ] [ #data "    Register operants[#bit_width:0][" ] [ #scope:self:code_size ] [ #data ":0]\n" ]
             #string         [ #last ] [ #data "    Wire program_counter[#counter_width:0]\n" ]
+            #string         [ #last ] [ #data "    Wire memory_selector[#selector_width:0]\n" ]
             #string         [ #last ] [ #data "    Wire bus[#bus_width:0]\n" ]
             #set            [ #data code ] [ #last ]
 
@@ -169,6 +181,7 @@
             #set            [ #data bus_offset ] [ #data 0 ]
             #multiply       [ #scope:bit_width ] [ #build:counter:operant ]
             #set            [ #data operant_offset ] [ #last ]
+            #set            [ #data memory_offset ] [ #data 0 ]
 
             @ add modules to code
             #iterate        [ #build:resolved_modules ]
@@ -221,7 +234,37 @@
 
             @ memory register
             #else           [ #data #equals ] [ #scope:iterator:register ] [ #data memory ]
-            #error          [ #data "implemnt memory" ]
+            #index          [ #scope:lookup_entry ] [ #scope:iterator:slot ]
+            #length         [ #last:sources ]
+            #string         [ #scope:code ] [ #data "\n    MemoryRegister<" ] [ #last ] [ #data ">(clock" ]
+            #set            [ #data code ] [ #last ]
+
+            @ add micro instruction to code
+            #call           [ #function:generate:micro_instructions ] [ #scope:lookup_entry ] [ #scope:iterator:slot ] [ #scope:code ] [ #scope:instruction_offset ]
+            #set            [ #data code ] [ #last:code ] [ #data instruction_offset ] [ #last:offset ]
+
+            @ add sources to code
+            #call           [ #function:generate:sources ] [ #scope:lookup_entry ] [ #scope:iterator:slot ] [ #scope:code ] [ #scope:bit_width ]
+            #set            [ #data code ] [ #last ]
+
+            @ add destination
+            #set            [ #data current_offset ] [ #scope:bus_offset ]
+            #add            [ #scope:bus_offset ] [ #scope:bit_width ]
+            #set            [ #data bus_offset ] [ #last ]
+            #string         [ #scope:code ] [ #data ", bus[" ] [ #scope:bus_offset ] [ #data ":" ] [ #scope:current_offset ] [ #data "]" ]
+            #set            [ #data code ] [ #last ]
+
+            @ add memory lane and closing bracket to code
+            #if             [ #data #zero ] [ #scope:memory_offset ]
+            #string         [ #scope:code ] [ #data ", memory[memory_selector])" ]
+            #else
+            #string         [ #scope:code ] [ #data ", memory[memory_selector + " ] [ #scope:memory_offset ] [ #data "])" ]
+            #end
+            #set            [ #data code ] [ #last ]
+
+            @ increment memory offset
+            #add            [ #scope:memory_offset ] [ #data 1 ]
+            #set            [ #data memory_offset ] [ #last ]
             #end
 
             @ module
@@ -357,6 +400,20 @@
             #call           [ #function:generate:operant ] [ #scope:iterator:instance ]
             #string         [ #scope:code ] [ #last ] [ #data " }\n" ]
             #set            [ #data code ] [ #last ]
+            #end
+
+            @ append newline
+            #string         [ #scope:code ] [ #data "\n" ]
+            #set            [ #data code ] [ #last ]
+
+            @ initialize memory
+            #iterate        [ #build:memory ]
+            #if             [ #data #not_zero ] [ #last:instance ]
+            #set            [ #data iterator ] [ #last ]
+            #subtract       [ #scope:iterator:selector ] [ #data 1 ]
+            #string         [ #scope:code ] [ #data "    memory[" ] [ #last ] [ #data "] := " ] [ #scope:iterator:instance ] [ #data "\n" ]
+            #set            [ #data code ] [ #last ]
+            #end
             #end
 
             @ negative clock edge behaviour
