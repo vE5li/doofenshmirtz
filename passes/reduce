@@ -43,17 +43,25 @@
 
             @ string
             #else           [ #data #equals ] [ #scope:self:type ] [ #data string ]
+            #length         [ #scope:self:value ]
+            #overwrite      [ #build:memory ] [ #scope:offset ] [ #last ]
+            #modify         [ #data #build:memory ] [ #last ]
+
+            @ iterate all characters in the string and write them to memory
             #iterate        [ #scope:self:value ]
             #set            [ #data iterator ] [ #last ]
             #integer        [ #scope:iterator:instance ]
             #set            [ #data value ] [ #last ]
 
             @ calculate correct offset and overwrite the memory slot
-            #add            [ #scope:iterator:selector ] [ #scope:offset ] [ #data -1 ]
+            #add            [ #scope:iterator:selector ] [ #scope:offset ]
             #overwrite      [ #build:memory ] [ #last ] [ #scope:value ]
             #modify         [ #data #build:memory ] [ #last ]
             #end
+
+            @ advance the offset
             #length         [ #scope:self:value ]
+            #add            [ #last ] [ #data 1 ]
             #return         [ #last ]
 
             @ character

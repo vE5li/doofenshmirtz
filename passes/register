@@ -151,6 +151,7 @@
             #else           [ #data #equals ] [ #scope:self:type ] [ #data string ]
             #call           [ #function:register:validate_type ] [ #scope:self ] [ #data string ] [ #data string ] [ #data !false ]
             #length         [ #scope:self:value ]
+            #add            [ #last ] [ #data 1 ]
             #return         [ #last ]
 
             @ character
