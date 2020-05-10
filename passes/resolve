@@ -75,7 +75,7 @@
             #length         [ #scope:operants ]
             #identifier     [ #data slot ] [ #last ]
             #path           [ #data operant ] [ #last ]
-            #set            [ #data register ] [ #last ]
+            #modify         [ #data #scope:register ] [ #last ]
 
             @ insert the instance into the operants list
             #append         [ #scope:operants ] [ #scope:instance ]
@@ -149,7 +149,7 @@
 
             @ get the register entry from the lookup
             #index          [ #build:module_lookup ] [ #scope:self:steps:1:part ]
-            #set            [ #data group ] [ #last ]
+            #modify         [ #data #scope:group ] [ #last ]
 
             @ make sure register exists
             #if             [ #data #not_present ] [ #scope:group ] [ #scope:self:steps:2:part ]
@@ -168,17 +168,17 @@
 
             @ pass the source register
             #pass           [ #scope:self:source ] [ #scope:operants ]
-            #set            [ #data source ] [ #last ]
+            #modify         [ #data #scope:source ] [ #last ]
 
             @ pass the destination register
             #pass           [ #scope:self:register ]
-            #set            [ #data register ] [ #last ]
+            #modify         [ #data #scope:register ] [ #last ]
 
             @ get register path and register entry
             #path           [ #data #build:module_lookup ] [ #scope:register ]
-            #set            [ #data register_path ] [ #last ]
+            #modify         [ #data #scope:register_path ] [ #last ]
             #resolve        [ #scope:register_path ]
-            #set            [ #data register_entry ] [ #last ]
+            #modify         [ #data #scope:register_entry ] [ #last ]
 
             @ make sure that register is writable
             #if             [ #data #not_present ] [ #scope:register_entry ] [ #data sources ]
@@ -203,10 +203,10 @@
 
             @ pass all moves and keep track of the used operant registers
             #if             [ #data #present ] [ #scope:self ] [ #data moves ]
-            #set            [ #data operants ] [ #data [ ] ]
+            #modify         [ #data #scope:operants ] [ #data [ ] ]
             #iterate        [ #scope:self:moves ]
             #pass           [ #last:instance:part ] [ #scope:operants ]
-            #set            [ #data operants ] [ #last ]
+            #modify         [ #data #scope:operants ] [ #last ]
             #end
             #end
 
@@ -222,8 +222,7 @@
             #end
 
             @ set active label to none
-            #overwrite      [ #build ] [ #data active_label ] [ #data none ]
-            #modify         [ #data #build ] [ #last ]
+            #modify         [ #data #build:active_label ] [ #data none ]
 
             @ if present, pass all blocks
             #if             [ #data #present ] [ #scope:section ] [ #data blocks ]
@@ -248,9 +247,9 @@
             @ iterate all #default sections and get their path and entry
             #iterate        [ #scope:default_pool ]
             #path           [ #data #scope:top:sections ] [ #last:instance ] [ #data part:data ]
-            #set            [ #data section_path ] [ #last ]
+            #modify         [ #data #scope:section_path ] [ #last ]
             #resolve        [ #scope:section_path ]
-            #set            [ #data section_entry ] [ #last ]
+            #modify         [ #data #scope:section_entry ] [ #last ]
 
             @ move the #default sections
             #insert         [ #scope:section_entry ] [ #data base ] [ #scope:top:size ]
@@ -268,9 +267,9 @@
             @ get section path and entry
             #index          [ #scope:pool ] [ #scope:name ]
             #path           [ #data #scope:top:sections ] [ #last:index ] [ #data part:data ]
-            #set            [ #data path ] [ #last ]
+            #modify         [ #data #scope:path ] [ #last ]
             #resolve        [ #scope:path ]
-            #set            [ #data section_entry ] [ #last ]
+            #modify         [ #data #scope:section_entry ] [ #last ]
 
             @ make sure that the section has not been mapped before
             #if             [ #data #present ] [ #scope:section_entry ] [ #data mapped ]
@@ -298,11 +297,11 @@
             @ get the respective sections
             #identifier     [ #scope:type ] [ #data _sections ]
             #index          [ #build ] [ #last ]
-            #set            [ #data pool ] [ #last ]
+            #modify         [ #data #scope:pool ] [ #last ]
 
             @ set size to 0 initially
             #insert         [ #scope:top ] [ #data size ] [ #data 0 ]
-            #set            [ #data top ] [ #last ]
+            #modify         [ #data #scope:top ] [ #last ]
 
             @ if custom map is present, iterate over the chunks
             #identifier     [ #scope:type ] [ #data _map ]
@@ -310,7 +309,7 @@
             #index          [ #build ] [ #last ]
             #iterate        [ #last:chunks ]
             #iterate        [ #last:instance ]
-            #set            [ #data iterator ] [ #last:instance ]
+            #modify         [ #data #scope:iterator ] [ #last:instance ]
 
             @ if chunk is #default
             #if             [ #data #present ] [ #scope:iterator ] [ #data default ]
@@ -326,9 +325,9 @@
             #end
 
             @ save position for errors and move the #default sections
-            #set            [ #data default_mapped ] [ #scope:iterator:position ]
+            #modify         [ #data #scope:default_mapped ] [ #scope:iterator:position ]
             #call           [ #function:resolve:move_default ] [ #scope:top ] [ #scope:pool:#default ]
-            #set            [ #data top ] [ #last ]
+            #modify         [ #data #scope:top ] [ #last ]
 
             @ if chunk is not #default, make sure it exists
             #else           [ #data #present ] [ #scope:iterator ] [ #data identifier ]
@@ -341,7 +340,7 @@
 
             @ move the named section
             #call           [ #function:resolve:move_section ] [ #scope:top ] [ #scope:type ] [ #scope:pool ] [ #scope:iterator:identifier ] [ #scope:iterator:position ]
-            #set            [ #data top ] [ #last ]
+            #modify         [ #data #scope:top ] [ #last ]
 
             @ if chunk is the base
             #else           [ #data #present ] [ #scope:iterator ] [ #data base ]
@@ -368,12 +367,12 @@
             @ #default section
             #if             [ #data #keyword ] [ #last:selector ]
             #call           [ #function:resolve:move_default ] [ #scope:top ] [ #scope:pool:#default ]
-            #set            [ #data top ] [ #last ]
+            #modify         [ #data #scope:top ] [ #last ]
 
             @ named section
             #else
             #call           [ #function:resolve:move_section ] [ #scope:top ] [ #scope:type ] [ #scope:pool ] [ #last:selector ] [ #data none ]
-            #set            [ #data top ] [ #last ]
+            #modify         [ #data #scope:top ] [ #last ]
             #end
             #end
             #end
@@ -387,7 +386,7 @@
         increment [ [ #single key ]
             #index          [ #build:counter ] [ #scope:key ]
             #add            [ #last ] [ #data 1 ]
-            #set            [ #data value ] [ #last ]
+            #modify         [ #data #scope:value ] [ #last ]
             #overwrite      [ #build:counter ] [ #scope:key ] [ #scope:value ]
             #modify         [ #data #build:counter ] [ #last ]
             #return         [ #scope:value ]
@@ -397,18 +396,18 @@
 
             @ get description entry
             #index          [ #root:module_description ] [ #scope:module ]
-            #set            [ #data description ] [ #last ]
+            #modify         [ #data #scope:description ] [ #last ]
 
             @ if module is a driver
             #for            [ #data 1 ] [ #scope:count ]
             #if             [ #data #present ] [ #scope:description ] [ #data drives ]
             #iterate        [ #scope:description:drives ]
-            #set            [ #data resource ] [ #last:instance ]
+            #modify         [ #data #scope:resource ] [ #last:instance ]
 
             @ make sure that there are no other modules driving the inputs
             #if             [ #data #present ] [ #build:driven ] [ #scope:resource ]
             #index          [ #build:driven ] [ #scope:resource ]
-            #set            [ #data previous ] [ #last ]
+            #modify         [ #data #scope:previous ] [ #last ]
 
             @ if the previous driver is a different module
             #print_line     [ #root:#color:red ] [ #data "\nprevious driver of " ] [ #scope:resource ] [ #root:#color:none ]
@@ -432,17 +431,17 @@
             #end
 
             @ set index to just the module name
-            #set            [ #data counter ] [ #data 0 ]
-            #set            [ #data index ] [ #scope:module ]
+            #modify         [ #data #scope:counter ] [ #data 0 ]
+            #modify         [ #data #scope:index ] [ #scope:module ]
 
             @ if module is not a driver, set index to the module name plus the module number
             #else
             #index          [ #build:counter:module ] [ #scope:module ]
             #add            [ #last ] [ #data 1 ]
-            #set            [ #data counter ] [ #last ]
+            #modify         [ #data #scope:counter ] [ #last ]
             #subtract       [ #scope:counter ] [ #data 1 ]
             #identifier     [ #scope:module ] [ #last ]
-            #set            [ #data index ] [ #last ]
+            #modify         [ #data #scope:index ] [ #last ]
 
             @ increment the module counter
             #overwrite      [ #build:counter:module ] [ #scope:module ] [ #scope:counter ]
@@ -450,9 +449,9 @@
             #end
 
             @ create emtpy lookup entry
-            #set            [ #data entry ] [ #data { } ]
+            #modify         [ #data #scope:entry ] [ #data { } ]
             #length         [ #scope:description:registers ]
-            #set            [ #data size ] [ #last ]
+            #modify         [ #data #scope:size ] [ #last ]
 
             @ iterate over all entries
             #for            [ #data 0 ] [ #scope:size ]
@@ -467,29 +466,29 @@
 
             @ get the register name
             #else
-            #set            [ #data selector ] [ #last ]
+            #modify         [ #data #scope:selector ] [ #last ]
             #add            [ #scope:selector ] [ #data 1 ]
             #index          [ #scope:description:registers ] [ #last ]
 
             @ if the register is a full register
             #if             [ #data #keyword ] [ #last ]
             #identifier     [ #last ]
-            #set            [ #data register ] [ #last ]
+            #modify         [ #data #scope:register ] [ #last ]
             #call           [ #function:resolve:increment ] [ #data full_register ]
-            #set            [ #data input ] [ #last ]
+            #modify         [ #data #scope:input ] [ #last ]
             #call           [ #function:resolve:increment ] [ #data register ]
             #map            [ #data output ] [ #last ] [ #data input ] [ #scope:input ] [ #data sources ] [ #data [ ] ]
 
             @ if the register is not a full register
             #else
-            #set            [ #data register ] [ #last ]
+            #modify         [ #data #scope:register ] [ #last ]
             #call           [ #function:resolve:increment ] [ #data register ]
             #map            [ #data output ] [ #last ]
             #end
 
             @ add register entry to module lookup
             #insert         [ #scope:entry ] [ #scope:register ] [ #last ]
-            #set            [ #data entry ] [ #last ]
+            #modify         [ #data #scope:entry ] [ #last ]
             #end
             #end
             #end
@@ -501,35 +500,34 @@
             #for            [ #data 1 ] [ #scope:count ]
             #index          [ #build:counter ] [ #scope:type ]
             #identifier     [ #data slot ] [ #last ]
-            #set            [ #data index ] [ #last ]
+            #modify         [ #data #scope:index ] [ #last ]
 
             @ increment register count and set bus output slot
             #call           [ #function:resolve:increment ] [ #data register ]
-            #set            [ #data output ] [ #last ]
+            #modify         [ #data #scope:output ] [ #last ]
 
             @ if its a full register
             #if             [ #data #true ] [ #scope:full ]
             #call           [ #function:resolve:increment ] [ #data full_register ]
-            #set            [ #data input ] [ #last ]
+            #modify         [ #data #scope:input ] [ #last ]
             #map            [ #data output ] [ #scope:output ] [ #data input ] [ #scope:input ] [ #data sources ] [ #data [ ] ]
 
             @ if its not a full register
             #else
             #map            [ #data output ] [ #scope:output ]
             #end
-            #set            [ #data entry ] [ #last ]
+            #modify         [ #data #scope:entry ] [ #last ]
 
             @ add register entry to module lookup
             #path           [ #data #build:module_lookup ] [ #scope:type ]
-            #set            [ #data path ] [ #last ]
+            #modify         [ #data #scope:path ] [ #last ]
             #resolve        [ #scope:path ]
             #insert         [ #last ] [ #scope:index ] [ #scope:entry ]
             #modify         [ #scope:path ] [ #last ]
 
             @ add register to resolved modules
             #map            [ #data register ] [ #scope:type ] [ #data slot ] [ #scope:index ]
-            #append         [ #build:resolved_modules ] [ #last ]
-            #modify         [ #data #build:resolved_modules ] [ #last ]
+            #modify         [ #data #build:resolved_modules:-1 ] [ #last ]
 
             @ increment the register counter of that type
             #call           [ #function:resolve:increment ] [ #scope:type ]
@@ -552,7 +550,7 @@
 
             @ add counters and lookup entries for all register types
             #iterate        [ #root:valid_registers ]
-            #set            [ #data register_type ] [ #last:instance ]
+            #modify         [ #data #scope:register_type ] [ #last:instance ]
             #insert         [ #build:counter ] [ #scope:register_type ] [ #data 0 ]
             #modify         [ #data #build:counter ] [ #last ]
             #insert         [ #build:module_lookup ] [ #scope:register_type ] [ #data { } ]
@@ -609,14 +607,14 @@
 
             @ relocate labels and sublabels
             #iterate        [ #build:labels ]
-            #set            [ #data iterator ] [ #last ]
+            #modify         [ #data #scope:iterator ] [ #last ]
             #index          [ #scope:self:sections ] [ #scope:iterator:instance:section ]
-            #set            [ #data section ] [ #last:part:data ]
+            #modify         [ #data #scope:section ] [ #last:part:data ]
 
             @ if section is mapped, relocate the sublabels
             #if             [ #data #present ] [ #scope:section ] [ #data base ]
             #iterate        [ #scope:iterator:instance:sublabels ]
-            #set            [ #data sublabel ] [ #last ]
+            #modify         [ #data #scope:sublabel ] [ #last ]
             #add            [ #scope:section:base ] [ #scope:sublabel:instance:offset ]
             #overwrite      [ #scope:iterator:instance:sublabels ] [ #scope:sublabel:selector ] [ #last ]
             #modify         [ #data #scope:iterator:instance:sublabels ] [ #last ]

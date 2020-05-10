@@ -22,10 +22,10 @@ directory {
     process_arguments [ [ #single arguments ]
 
         @ create configuration and index
-        #set            [ #data configuration ] [ #data { files [ ] debug !false output "output.uni" } ]
+        #modify         [ #data #scope:configuration ] [ #data { files [ ] debug !false output "output.uni" } ]
         #length         [ #scope:arguments ]
-        #set            [ #data count ] [ #last ]
-        #set            [ #data index ] [ #data 1 ]
+        #modify         [ #data #scope:count ] [ #last ]
+        #modify         [ #data #scope:index ] [ #data 1 ]
 
         @ iterate over all arguments and match
         #while          [ #data #not_bigger ] [ #scope:index ] [ #scope:count ]
@@ -35,21 +35,21 @@ directory {
         #if             [ #data #equals ] [ #last ] [ #data "-o" ]
         #ensure         [ #data #bigger ] [ #scope:count ] [ #scope:index ] [ #data "expected output file" ]
         #ensure         [ #data #not_present ] [ #scope ] [ #data output_set ] [ #data "output file may only be spceified once" ]
-        #set            [ #data output_set ] [ #data !true ]
+        #modify         [ #data #scope:output_set ] [ #data !true ]
         #add            [ #scope:index ] [ #data 1 ]
-        #set            [ #data index ] [ #last ]
+        #modify         [ #data #scope:index ] [ #last ]
         #index          [ #scope:arguments ] [ #scope:index ]
         #modify         [ #data #scope:configuration:output ] [ #last ]
 
         @ enable debug
         #else           [ #data #equals ] [ #last ] [ #data "-d" ]
         #ensure         [ #data #not_present ] [ #scope ] [ #data debug_set ] [ #data "debug flag may only be set once" ]
-        #set            [ #data debug_set ] [ #data !true ]
+        #modify         [ #data #scope:debug_set ] [ #data !true ]
         #modify         [ #data #scope:configuration:debug ] [ #data !true ]
 
         @ add source file
         #else
-        #set            [ #data file ] [ #last ]
+        #modify         [ #data #scope:file ] [ #last ]
         #index          [ #scope:file ] [ #data 1 ]
         #ensure         [ #data #not_equals ] [ #last ] [ #data '-' ] [ #data "invalid flag " ] [ #scope:file ]
         #ensure         [ #data #not_contains ] [ #scope:configuration:files ] [ #scope:file ] [ #data "file " ] [ #scope:file ] [ #data " may only be passed to the compiler once" ]
@@ -59,7 +59,7 @@ directory {
 
         @ increment argument index
         #add            [ #scope:index ] [ #data 1 ]
-        #set            [ #data index ] [ #last ]
+        #modify         [ #data #scope:index ] [ #last ]
 
         @ return configuration
         #end
@@ -70,31 +70,31 @@ directory {
 
         @ take initial time passed
         #time
-        #set            [ #data start_time ] [ #last ]
+        #modify         [ #data #scope:start_time ] [ #last ]
 
         @ process command line arguments
         #call           [ #function:process_arguments ] [ #scope:arguments ]
-        #set            [ #data configuration ] [ #last ]
+        #modify         [ #data #scope:configuration ] [ #last ]
 
         @ load the compiler core
         #map            [ #data debug ] [ #scope:configuration:debug ]
-        #set            [ #data compiler ] [ #last ]
+        #modify         [ #data #scope:compiler ] [ #last ]
         #iterate        [ #root:core ]
         #string         [ #root:directory:core ] [ #last:instance ]
         #read_map       [ #last ]
         #merge          [ #scope:compiler ] [ #last ]
-        #set            [ #data compiler ] [ #last ]
+        #modify         [ #data #scope:compiler ] [ #last ]
         #end
 
         @ load necessary libraries
         #iterate        [ #root:dependencies ]
         #string         [ #root:directory:utility ] [ #last:instance ]
         #read_map       [ #last ]
-        #set            [ #data library ] [ #last ]
+        #modify         [ #data #scope:library ] [ #last ]
         #merge          [ #root ] [ #scope:library ]
         #modify         [ #data #root ] [ #last ]
         #merge          [ #scope:compiler ] [ #scope:library ]
-        #set            [ #data compiler ] [ #last ]
+        #modify         [ #data #scope:compiler ] [ #last ]
         #end
 
         @ ensure that there are files to be compiled
@@ -106,11 +106,11 @@ directory {
         #end
 
         @ tokenize and parse all source files and combine them
-        #set            [ #data top ] [ #data { } ]
+        #modify         [ #data #scope:top ] [ #data { } ]
         #iterate        [ #scope:configuration:files ]
         #compile_file   [ #scope:compiler ] [ #last:instance ]
         #merge          [ #scope:top ] [ #last ]
-        #set            [ #data top ] [ #last ]
+        #modify         [ #data #scope:top ] [ #last ]
         #end
 
         @ debug message
@@ -120,9 +120,9 @@ directory {
 
         @ load the pipeline and the passes that are going to be used
         #insert         [ #scope:compiler ] [ #data #pipeline ] [ #root:pipeline ]
-        #set            [ #data compiler ] [ #last ]
+        #modify         [ #data #scope:compiler ] [ #last ]
         #iterate        [ #root:pipeline ]
-        #set            [ #data pass ] [ #last:instance ]
+        #modify         [ #data #scope:pass ] [ #last:instance ]
 
         @ debug message
         #if             [ #data #true ] [ #scope:configuration:debug ]
@@ -134,7 +134,7 @@ directory {
         #string         [ #root:directory:pass ] [ #scope:pass ]
         #read_map       [ #last ]
         #merge          [ #scope:compiler ] [ #last ]
-        #set            [ #data compiler ] [ #last ]
+        #modify         [ #data #scope:compiler ] [ #last ]
         #end
 
         @ debug message
@@ -147,7 +147,7 @@ directory {
         #read_map       [ #last ]
         #merge          [ #scope:compiler ] [ #last ]
         #insert         [ #last ] [ #data module_directory ] [ #root:directory:module ]
-        #set            [ #data compiler ] [ #last ]
+        #modify         [ #data #scope:compiler ] [ #last ]
 
         @ debug message
         #if             [ #data #true ] [ #scope:configuration:debug ]
@@ -156,7 +156,7 @@ directory {
 
         @ compile parsed files
         #build          [ #scope:compiler ] [ #scope:top ]
-        #set            [ #data build ] [ #last ]
+        #modify         [ #data #scope:build ] [ #last ]
 
         @ debug message
         #if             [ #data #true ] [ #scope:configuration:debug ]
@@ -168,7 +168,7 @@ directory {
         #time
         #subtract       [ #last ] [ #scope:start_time ]
         #divide         [ #last ] [ #data 1000.0 ]
-        #set            [ #data duration ] [ #last ]
+        #modify         [ #data #scope:duration ] [ #last ]
 
         @ output debug information if the user input is yes
         #if             [ #data #true ] [ #scope:configuration:debug ]

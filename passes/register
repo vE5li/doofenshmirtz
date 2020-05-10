@@ -104,8 +104,7 @@
             #end
 
             @ save the section position for error messages
-            #insert         [ #build ] [ #data core_position ] [ #scope:self:#position:identifier ]
-            #modify         [ #data #build ] [ #last ]
+            #modify         [ #data #build:core_position ] [ #scope:self:#position:identifier ]
 
             @ pass specifications and return
             #if             [ #data #present ] [ #scope:self ] [ #data specifications ]
@@ -217,9 +216,9 @@
 
             @ get the sublabel entry of the active label
             #path           [ #data #build:labels ] [ #build:active_label ] [ #data sublabels ]
-            #set            [ #data path ] [ #last ]
+            #modify         [ #data #scope:path ] [ #last ]
             #resolve        [ #scope:path ]
-            #set            [ #data entry ] [ #last ]
+            #modify         [ #data #scope:entry ] [ #last ]
 
             @ make sure that sublabel is unique
             #if             [ #data #present ] [ #scope:entry ] [ #scope:self:identifier ]
@@ -260,22 +259,22 @@
             #modify         [ #data #build:active_label ] [ #data none ]
             #identifier     [ #scope:type ] [ #data _sections ]
             #path           [ #data #build ] [ #last ]
-            #set            [ #data path ] [ #last ]
+            #modify         [ #data #scope:path ] [ #last ]
             #resolve        [ #scope:path ]
-            #set            [ #data entry ] [ #last ]
+            #modify         [ #data #scope:entry ] [ #last ]
 
             @ if the section has blocks, pass them to calculate the section width
             #if             [ #data #present ] [ #scope:section ] [ #data blocks ]
-            #set            [ #data section_size ] [ #data 0 ]
+            #modify         [ #data #scope:section_size ] [ #data 0 ]
             #iterate        [ #scope:section:blocks ]
             #pass           [ #last:instance:part ] [ #scope:index ] [ #scope:section_size ]
             #add            [ #scope:section_size ] [ #last ]
-            #set            [ #data section_size ] [ #last ]
+            #modify         [ #data #scope:section_size ] [ #last ]
             #end
 
             @ if the section has no blocks, section width is 0
             #else
-            #set            [ #data section_size ] [ #data 0 ]
+            #modify         [ #data #scope:section_size ] [ #data 0 ]
             #end
 
             @ set the section size
@@ -355,17 +354,17 @@
             #if             [ #data #present ] [  #scope:self ] [ #data base ]
             #map            [ #data base ] [ #scope:self:base ] [ #data position ] [ #scope:self:#position:base ]
             #list           [ #last ]
-            #set            [ #data entry ] [ #last ]
+            #modify         [ #data #scope:entry ] [ #last ]
 
             @ if the chunk does not have a base offset
             #else
-            #set            [ #data entry ] [ #data [ ] ]
+            #modify         [ #data #scope:entry ] [ #data [ ] ]
             #end
 
             @ pass all pieces and fill entry list
             #iterate        [ #scope:self:pieces ]
             #pass           [ #last:instance ] [ #scope:entry ]
-            #set            [ #data entry ] [ #last:part ]
+            #modify         [ #data #scope:entry ] [ #last:part ]
             #end
 
             @ append chunks to the list
@@ -377,7 +376,7 @@
 
             @ get key of map
             #identifier     [ #scope:type ] [ #data _map ]
-            #set            [ #data index ] [ #last ]
+            #modify         [ #data #scope:index ] [ #last ]
 
             @ make sure that there is not other map
             #if             [ #data #present ] [ #build ] [ #scope:index ]
@@ -396,10 +395,10 @@
             #end
 
             @ pass all chunks and collect them in a list
-            #set            [ #data chunks ] [ #data [ ] ]
+            #modify         [ #data #scope:chunks ] [ #data [ ] ]
             #iterate        [ #scope:map:chunks ]
             #pass           [ #last:instance:part ] [ #scope:chunks ]
-            #set            [ #data chunks ] [ #last ]
+            #modify         [ #data #scope:chunks ] [ #last ]
             #end
 
             @ add map entry to #build
@@ -427,7 +426,7 @@
 
             @ validate the module descriptions
             #iterate        [ #root:module_description ]
-            #set            [ #data description ] [ #last ]
+            #modify         [ #data #scope:description ] [ #last ]
             #if             [ #data #present ] [ #scope:description:instance ] [ #data drives ]
 
             @ make sure that the module names are not the same as any register type
@@ -479,7 +478,7 @@
             @ if present, pass sections
             #if             [ #data #present ] [ #scope:self ] [ #data sections ]
             #iterate        [ #scope:self:sections ]
-            #set            [ #data iterator ] [ #last ]
+            #modify         [ #data #scope:iterator ] [ #last ]
             #pass           [ #scope:iterator:instance ] [ #scope:iterator:selector ]
             #overwrite      [ #scope:self:sections ] [ #scope:iterator:selector ] [ #last ]
             #modify         [ #data #scope:self:sections ] [ #last ]

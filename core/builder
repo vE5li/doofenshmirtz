@@ -13,7 +13,7 @@ resource {
     #note [ [ #single flag [ identifier ] ] [ #single message [ string ] ]
         #split          [ #context:#file ] [ #data '/' ] [ #data !true ]
         #call           [ #function:#format:tag ] [ #root:#color:blue ] [ #last:-1 ]
-        #set            [ #data module ] [ #last ]
+        #modify         [ #data #scope:module ] [ #last ]
         #call           [ #function:#format:tag ] [ #root:#color:yellow ] [ #scope:flag ]
         #print_line     [ #scope:module ] [ #data " " ] [ #last ] [ #data " " ] [ #scope:message ]
     ]

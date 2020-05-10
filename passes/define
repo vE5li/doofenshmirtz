@@ -54,8 +54,7 @@
             #end
 
             @ create map with compiler directives
-            #insert         [ #build ] [ #data directives ] [ #data { true { value !true position #none } false { value !false position #none } default { value #default position #none } } ]
-            #modify         [ #data #build ] [ #last ]
+            #modify         [ #data #build:directives ] [ #data { true { value !true position #none } false { value !false position #none } default { value #default position #none } } ]
 
             @ pass sections if present
             #if             [ #data #present ] [ #scope:self ] [ #data sections ]

@@ -49,9 +49,9 @@
 
             @ iterate all characters in the string and write them to memory
             #iterate        [ #scope:self:value ]
-            #set            [ #data iterator ] [ #last ]
+            #modify         [ #data #scope:iterator ] [ #last ]
             #integer        [ #scope:iterator:instance ]
-            #set            [ #data value ] [ #last ]
+            #modify         [ #data #scope:value ] [ #last ]
 
             @ calculate correct offset and overwrite the memory slot
             #add            [ #scope:iterator:selector ] [ #scope:offset ]
@@ -84,9 +84,9 @@
 
             @ get the path and entry of the operants in the current instruction
             #path           [ #data #build:operants ] [ #scope:offset ]
-            #set            [ #data entry_path ] [ #last ]
+            #modify         [ #data #scope:entry_path ] [ #last ]
             #resolve        [ #scope:entry_path ]
-            #set            [ #data operants_entry ] [ #last ]
+            #modify         [ #data #scope:operants_entry ] [ #last ]
 
             @ if value is already one of the operants
             #if             [ #data #contains ] [ #scope:operants_entry ] [ #scope:instance ]
@@ -99,7 +99,7 @@
             @ if value is not yet one of the operants
             #else
             #position       [ #scope:operants_entry ] [ #data none ]
-            #set            [ #data operant_index ] [ #last:1 ]
+            #modify         [ #data #scope:operant_index ] [ #last:1 ]
 
             @ modify the operants entry
             #overwrite      [ #scope:operants_entry ] [ #scope:operant_index ] [ #scope:instance ]
@@ -150,25 +150,25 @@
 
             @ pass source register and destination register
             #pass           [ #scope:self:source ] [ #scope:offset ]
-            #set            [ #data source ] [ #last ]
+            #modify         [ #data #scope:source ] [ #last ]
             #pass           [ #scope:self:register ]
-            #set            [ #data register ] [ #last ]
+            #modify         [ #data #scope:register ] [ #last ]
 
             @ get the lookup entry of the destination register
             #index          [ #build:module_lookup ] [ #scope:register:1 ]
             #index          [ #last ] [ #scope:register:2 ]
-            #set            [ #data register_entry ] [ #last ]
+            #modify         [ #data #scope:register_entry ] [ #last ]
 
             @ get the index of the source register
             #position       [ #scope:register_entry:sources ] [ #scope:source ]
             #subtract       [ #last:1 ] [ #data 1 ]
-            #set            [ #data reduced_source ] [ #last ]
+            #modify         [ #data #scope:reduced_source ] [ #last ]
 
             @ get the path and entry of the current instruction
             #path           [ #data #build:bytecode ] [ #scope:offset ]
-            #set            [ #data instruction_path ] [ #last ]
+            #modify         [ #data #scope:instruction_path ] [ #last ]
             #resolve        [ #scope:instruction_path ]
-            #set            [ #data instruction_entry ] [ #last ]
+            #modify         [ #data #scope:instruction_entry ] [ #last ]
 
             @ make sure that the destination is not already loading another value
             #index          [ #scope:instruction_entry ] [ #scope:register_entry:input ]
@@ -210,19 +210,18 @@
             #end
 
             @ set active label to none
-            #overwrite      [ #build ] [ #data active_label ] [ #data none ]
-            #modify         [ #data #build ] [ #last ]
+            #modify         [ #data #build:active_label ] [ #data none ]
 
             @ if blocks are present, set offset to the base address of the section
             #if             [ #data #present ] [ #scope:section ] [ #data blocks ]
             #add            [ #scope:section:base ] [ #data 1 ]
-            #set            [ #data offset ] [ #last ]
+            #modify         [ #data #scope:offset ] [ #last ]
 
             @ pass all the blocks and keep track of the offset
             #iterate        [ #scope:section:blocks ]
             #pass           [ #last:instance:part ] [ #scope:offset ]
             #add            [ #scope:offset ] [ #last ]
-            #set            [ #data offset ] [ #last ]
+            #modify         [ #data #scope:offset ] [ #last ]
             #end
             #end
         ]
@@ -264,10 +263,10 @@
             #modify         [ #data #build ] [ #last ]
 
             @ create noop instruction and instruction width
-            #set            [ #data noop ] [ #data [ ] ]
+            #modify         [ #data #scope:noop ] [ #data [ ] ]
             #for            [ #data 1 ] [ #build:counter:full_register ]
             #append         [ #scope:noop ] [ #data noop ]
-            #set            [ #data noop ] [ #last ]
+            #modify         [ #data #scope:noop ] [ #last ]
             #append         [ #build:micro_instruction_width ] [ #data 0 ]
             #modify         [ #data #build:micro_instruction_width ] [ #last ]
             #end
@@ -281,7 +280,7 @@
             #iterate        [ #build:module_lookup ]
             #iterate        [ #last:instance ]
             #if             [ #data #present ] [ #last:instance ] [ #data sources ]
-            #set            [ #data register_entry ] [ #last:instance ]
+            #modify         [ #data #scope:register_entry ] [ #last:instance ]
 
             @ calculate micro instruction width
             #length         [ #scope:register_entry:sources ]
@@ -291,7 +290,7 @@
 
             @ if the micro instruction takes at least one bit
             #if             [ #data #not_zero ] [ #last ]
-            #set            [ #data width ] [ #last ]
+            #modify         [ #data #scope:width ] [ #last ]
 
             @ update micro instruction width
             #overwrite      [ #build:micro_instruction_width ] [ #scope:register_entry:input ] [ #scope:width ]
@@ -311,11 +310,11 @@
             #end
 
             @ create operant slots containing none
-            #set            [ #data operants ] [ #data [ ] ]
+            #modify         [ #data #scope:operants ] [ #data [ ] ]
             #if             [ #data #not_zero ] [ #build:counter:operant ]
             #for            [ #data 1 ] [ #build:counter:operant ]
             #append         [ #scope:operants ] [ #data none ]
-            #set            [ #data operants ] [ #last ]
+            #modify         [ #data #scope:operants ] [ #last ]
             #end
             #end
 

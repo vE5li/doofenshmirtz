@@ -24,13 +24,13 @@
 
             @ get the directives entry and check if its already resolved
             #index          [ #build:directives ] [ #scope:directive ]
-            #set            [ #data entry ] [ #last ]
+            #modify         [ #data #scope:entry ] [ #last ]
             #if             [ #data #map ] [ #scope:entry:value ]
 
             @ resolve the entry, overwrite its previous value and return it
             #append         [ #scope:checking ] [ #scope:directive ]
             #pass           [ #scope:entry ] [ #last ]
-            #set            [ #data entry ] [ #last ]
+            #modify         [ #data #scope:entry ] [ #last ]
             #overwrite      [ #build:directives ] [ #scope:directive ] [ #scope:entry ]
             #modify         [ #data #build:directives ] [ #last ]
 
@@ -61,7 +61,7 @@
 
             @ pass the condition value and ensure its a boolean
             #pass           [ #scope:self:condition ] [ #scope:checking ]
-            #set            [ #data condition ] [ #last ]
+            #modify         [ #data #scope:condition ] [ #last ]
 
             @ make sure that the condition is a boolean
             #if             [ #data #not_boolean ] [ #scope:condition ]
@@ -99,13 +99,13 @@
 
             @ get the final left and right values
             #call           [ #function:indent:calculate_total ] [ #scope:source:1 ]
-            #set            [ #data left ] [ #last ]
+            #modify         [ #data #scope:left ] [ #last ]
             #call           [ #function:indent:calculate_total ] [ #scope:source:3 ]
-            #set            [ #data right ] [ #last ]
+            #modify         [ #data #scope:right ] [ #last ]
 
             @ invoke a math function set by the operator
             #list           [ #scope:left ] [ #scope:right ]
-            #set            [ #data parameters ] [ #last ]
+            #modify         [ #data #scope:parameters ] [ #last ]
             #keyword        [ #scope:source:2 ]
             #invoke         [ #last ] [ #scope:parameters ]
             #return         [ #last ]
@@ -120,15 +120,15 @@
 
             @ get the final left and right values
             #call           [ #function:indent:calculate_condition ] [ #scope:source:1 ]
-            #set            [ #data left ] [ #last ]
+            #modify         [ #data #scope:left ] [ #last ]
             #call           [ #function:indent:calculate_condition ] [ #scope:source:3 ]
-            #set            [ #data right ] [ #last ]
+            #modify         [ #data #scope:right ] [ #last ]
 
             @ check if its a logical operator
             #if             [ #data #contains ] [ #scope:source:2 ] [ #data logical_ ]
             #split          [ #scope:source:2 ] [ #data '_' ] [ #data !true ]
             #keyword        [ #last:2 ]
-            #set            [ #data instruction ] [ #last ]
+            #modify         [ #data #scope:instruction ] [ #last ]
 
             @ ensure both values are booleans
             #if             [ #data #not_boolean ] [ #scope:left ]
@@ -154,7 +154,7 @@
         pull [ [ #single source ] [ #single operators ]
 
             @ iterate all items
-            #set            [ #data index ] [ #data 2 ]
+            #modify         [ #data #scope:index ] [ #data 2 ]
             #while          [ #data #smaller ] [ #scope:index ] [ #scope:source ]
 
             @ if the source has a length of 3, pull is done
@@ -169,14 +169,14 @@
 
             @ get the value to the left of the operator and safe its index for inserting the new list
             #subtract       [ #scope:index ] [ #data 1 ]
-            #set            [ #data replace ] [ #last ]
+            #modify         [ #data #scope:replace ] [ #last ]
             #index          [ #scope:source ] [ #last ]
-            #set            [ #data left ] [ #last ]
+            #modify         [ #data #scope:left ] [ #last ]
 
             @ get the value to the right of the operator
             #add            [ #scope:index ] [ #data 1 ]
             #index          [ #scope:source ] [ #last ]
-            #set            [ #data right ] [ #last ]
+            #modify         [ #data #scope:right ] [ #last ]
 
             @ insert the new list into source and remove the two following items
             #index          [ #scope:source ] [ #scope:index ]
@@ -184,12 +184,12 @@
             #overwrite      [ #scope:source ] [ #scope:replace ] [ #last ]
             #remove         [ #last ] [ #scope:index ]
             #remove         [ #last ] [ #scope:index ]
-            #set            [ #data source ] [ #last ]
+            #modify         [ #data #scope:source ] [ #last ]
 
             @ if the operator is not found, check the next item
             #else
             #add            [ #scope:index ] [ #data 1 ]
-            #set            [ #data index ] [ #last ]
+            #modify         [ #data #scope:index ] [ #last ]
             #end
             #end
             #return         [ #scope:source ]
@@ -198,20 +198,20 @@
         combine_equasion [ [ #single pieces ] [ #single checking ]
 
             @ iterate the pieces
-            #set            [ #data combined ] [ #data [ ] ]
+            #modify         [ #data #scope:combined ] [ #data [ ] ]
             #iterate        [ #scope:pieces ]
-            #set            [ #data iterator ] [ #last ]
+            #modify         [ #data #scope:iterator ] [ #last ]
 
             @ pass the part and add the value and position to the combined list
             #pass           [ #scope:iterator:instance:part ] [ #scope:checking ]
             #list           [ #last ] [ #scope:iterator:instance:position:part ]
             #append         [ #scope:combined ] [ #last ]
-            #set            [ #data combined ] [ #last ]
+            #modify         [ #data #scope:combined ] [ #last ]
 
             @ if there is an operator following, add it to the combined list aswell
             #if             [ #data #present ] [ #scope:iterator:instance ] [ #data seperator ]
             #append         [ #scope:combined ] [ #scope:iterator:instance:seperator:operator ]
-            #set            [ #data combined ] [ #last ]
+            #modify         [ #data #scope:combined ] [ #last ]
 
             @ return combined list
             #end
@@ -263,20 +263,20 @@
         ]
 
         concatinate [ [ #single self ] [ #single checking ]
-            #set            [ #data string ] [ #data "" ]
+            #modify         [ #data #scope:string ] [ #data "" ]
             #iterate        [ #scope:self:concatinate ]
             #pass           [ #last:instance:part ] [ #scope:checking ]
             #string         [ #scope:string ] [ #last ]
-            #set            [ #data string ] [ #last ]
+            #modify         [ #data #scope:string ] [ #last ]
             #end
             #return         [ #scope:string ]
         ]
 
         collect [ [ #single parameters ]
-            #set            [ #data new ] [ #data [ ] ]
+            #modify         [ #data #scope:new ] [ #data [ ] ]
             #iterate        [ #scope:parameters ]
             #append         [ #scope:new ] [ #last:instance:part ]
-            #set            [ #data new ] [ #last ]
+            #modify         [ #data #scope:new ] [ #last ]
             #end
             #return         [ #scope:new ]
         ]
