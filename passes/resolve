@@ -527,7 +527,8 @@
 
             @ add register to resolved modules
             #map            [ #data register ] [ #scope:type ] [ #data slot ] [ #scope:index ]
-            #modify         [ #data #build:resolved_modules:-1 ] [ #last ]
+            #append         [ #build:resolved_modules ] [ #last ]
+            #modify         [ #data #build:resolved_modules ] [ #last ]
 
             @ increment the register counter of that type
             #call           [ #function:resolve:increment ] [ #scope:type ]
