@@ -11,6 +11,7 @@ project {
 }
 
 directory {
+    apio            "/usr/share/seamonkey/ktl9/apio/"
     core            "/usr/share/seamonkey/ktl9/core/"
     pass            "/usr/share/seamonkey/ktl9/passes/"
     module          "/usr/share/seamonkey/ktl9/module/"
@@ -22,7 +23,7 @@ directory {
     process_arguments [ [ #single arguments ]
 
         @ create configuration and index
-        #modify         [ #data #scope:configuration ] [ #data { files [ ] debug !false output "output.uni" } ]
+        #modify         [ #data #scope:configuration ] [ #data { files [ ] debug $false verilog $false output "output.uni" } ]
         #length         [ #scope:arguments ]
         #modify         [ #data #scope:count ] [ #last ]
         #modify         [ #data #scope:index ] [ #data 1 ]
@@ -35,7 +36,7 @@ directory {
         #if             [ #data #equals ] [ #last ] [ #data "-o" ]
         #ensure         [ #data #bigger ] [ #scope:count ] [ #scope:index ] [ #data "expected output file" ]
         #ensure         [ #data #not_present ] [ #scope ] [ #data output_set ] [ #data "output file may only be spceified once" ]
-        #modify         [ #data #scope:output_set ] [ #data !true ]
+        #modify         [ #data #scope:output_set ] [ #data $true ]
         #add            [ #scope:index ] [ #data 1 ]
         #modify         [ #data #scope:index ] [ #last ]
         #index          [ #scope:arguments ] [ #scope:index ]
@@ -44,8 +45,17 @@ directory {
         @ enable debug
         #else           [ #data #equals ] [ #last ] [ #data "-d" ]
         #ensure         [ #data #not_present ] [ #scope ] [ #data debug_set ] [ #data "debug flag may only be set once" ]
-        #modify         [ #data #scope:debug_set ] [ #data !true ]
-        #modify         [ #data #scope:configuration:debug ] [ #data !true ]
+        #modify         [ #data #scope:debug_set ] [ #data $true ]
+        #modify         [ #data #scope:configuration:debug ] [ #data $true ]
+
+        @ verilog mode
+        #else           [ #data #equals ] [ #last ] [ #data "-V" ]
+        #ensure         [ #data #not_present ] [ #scope ] [ #data verilog_set ] [ #data "verilog flag may only be set once" ]
+        #modify         [ #data #scope:verilog_set ] [ #data $true ]
+        #modify         [ #data #scope:configuration:verilog ] [ #data $true ]
+        #insert         [ #root:directory:module ] [ #data -2 ] [ #data "_verilog" ]
+        #modify         [ #data #root:directory:module ] [ #last ]
+        #modify         [ #data #root:pipeline:-1 ] [ #data generate_verilog ]
 
         @ add source file
         #else
@@ -60,9 +70,16 @@ directory {
         @ increment argument index
         #add            [ #scope:index ] [ #data 1 ]
         #modify         [ #data #scope:index ] [ #last ]
+        #end
+
+        @ if the compiler uses the verilog backend and no output is specified, change the output directory
+        #if             [ #data #true ] [ #scope:configuration:verilog ]
+        #if             [ #data #not_present ] [ #scope ] [ #data output_set ]
+        #modify         [ #data #scope:configuration:output ] [ #data "output/verilog" ]
+        #end
+        #end
 
         @ return configuration
-        #end
         #return         [ #scope:configuration ]
     ]
 
@@ -80,7 +97,7 @@ directory {
         #map            [ #data debug ] [ #scope:configuration:debug ]
         #modify         [ #data #scope:compiler ] [ #last ]
         #iterate        [ #root:core ]
-        #string         [ #root:directory:core ] [ #last:instance ]
+        #string         [ #root:directory:core ] [ #last:instance ] [ #data ".data" ]
         #read_map       [ #last ]
         #merge          [ #scope:compiler ] [ #last ]
         #modify         [ #data #scope:compiler ] [ #last ]
@@ -88,7 +105,7 @@ directory {
 
         @ load necessary libraries
         #iterate        [ #root:dependencies ]
-        #string         [ #root:directory:utility ] [ #last:instance ]
+        #string         [ #root:directory:utility ] [ #last:instance ] [ #data ".data" ]
         #read_map       [ #last ]
         #modify         [ #data #scope:library ] [ #last ]
         #merge          [ #root ] [ #scope:library ]
@@ -108,7 +125,17 @@ directory {
         @ tokenize and parse all source files and combine them
         #modify         [ #data #scope:top ] [ #data { } ]
         #iterate        [ #scope:configuration:files ]
-        #compile_file   [ #scope:compiler ] [ #last:instance ]
+        #modify         [ #data #scope:file ] [ #last:instance ]
+
+        @ ensure that the source file exists
+        #if             [ #data #not_file_present ] [ #scope:file ]
+        #error          [ #data "missing source file " ] [ #scope:file ]
+        #end
+
+        @ read the source file, tokenize and parse it
+        #read_file      [ #scope:file ]
+        #tokenize       [ #scope:compiler ] [ #last ] [ #scope:file ] [ #data $false ]
+        #parse          [ #scope:compiler ] [ #last:token_stream ] [ #last:registry ]
         #merge          [ #scope:top ] [ #last ]
         #modify         [ #data #scope:top ] [ #last ]
         #end
@@ -131,7 +158,7 @@ directory {
         #end
 
         @ load pass from file
-        #string         [ #root:directory:pass ] [ #scope:pass ]
+        #string         [ #root:directory:pass ] [ #scope:pass ] [ #data ".data" ]
         #read_map       [ #last ]
         #merge          [ #scope:compiler ] [ #last ]
         #modify         [ #data #scope:compiler ] [ #last ]
@@ -143,7 +170,7 @@ directory {
         #end
 
         @ load the module descriptions and build the parsed files
-        #string         [ #root:directory:module ] [ #data "description" ]
+        #string         [ #root:directory:module ] [ #data "description.data" ]
         #read_map       [ #last ]
         #merge          [ #scope:compiler ] [ #last ]
         #insert         [ #last ] [ #data module_directory ] [ #root:directory:module ]
@@ -158,88 +185,39 @@ directory {
         #build          [ #scope:compiler ] [ #scope:top ]
         #modify         [ #data #scope:build ] [ #last ]
 
-        @ debug message
+        @ if verilog mode
+        #if             [ #data #true ] [ #scope:configuration:verilog ]
+        #if             [ #data #true ] [ #scope:configuration:debug ]
+        #call           [ #function:#print:debug ] [ #data "creating standard apio directory" ]
+        #end
+
+        @ copy apio directory to output path
+        #system         [ #data "cp" ] [ #data "-r" ] [ #data "-T" ] [ #root:directory:apio ] [ #scope:configuration:output ]
+        #if             [ #data #false ] [ #last ]
+        #error          [ #data "failed to create directory " ] [ #scope:configuration:output ]
+        #end
+
+        @ write verilog code to file
+        #if             [ #data #true ] [ #scope:configuration:debug ]
+        #call           [ #function:#print:debug ] [ #data "writing code to file " ] [ #root:#color:magenta ] [ #scope:configuration:output ] [ #data "/top.v" ] [ #root:#color:none ]
+        #end
+        #string         [ #scope:configuration:output ] [ #data "/top.v" ]
+        #write_file     [ #last ] [ #scope:build:code ]
+
+        @ if not verilog mode
+        #else
         #if             [ #data #true ] [ #scope:configuration:debug ]
         #call           [ #function:#print:debug ] [ #data "writing code to file " ] [ #root:#color:magenta ] [ #scope:configuration:output ] [ #root:#color:none ]
         #end
         #write_file     [ #scope:configuration:output ] [ #scope:build:code ]
-
-        @ calculate the compilation time
-        #time
-        #subtract       [ #last ] [ #scope:start_time ]
-        #divide         [ #last ] [ #data 1000.0 ]
-        #modify         [ #data #scope:duration ] [ #last ]
-
-        @ output debug information if the user input is yes
-        #if             [ #data #true ] [ #scope:configuration:debug ]
-        #call           [ #function:#format:tag ] [ #root:#color:magenta ] [ #data "debug" ]
-        #print          [ #last ] [ #data " print build map? (y, N) " ]
-        #input
-        #if             [ #data #equals ] [ #last ] [ #data "y" ]
-        #call           [ #function:output_debug ] [ #scope:build ]
-        #end
         #end
 
         @ print the compilation time
-        #string         [ #scope:duration ]
+        #time
+        #subtract       [ #last ] [ #scope:start_time ]
+        #divide         [ #last ] [ #data 1000.0 ]
+        #string         [ #last ]
         #slice          [ #last ] [ #data 1 ] [ #data 3 ]
         #call           [ #function:#print:success ] [ #data "completed in " ] [ #last ] [ #data "s"]
-    ]
-
-    output_debug [ [ #single build ]
-
-        @ final sections that will be placed in memory
-        #call           [ #function:#format:serialize ] [ #scope:build:bytecode ]
-        #print_line     [ #root:#color:magenta ] [ #data "build:bytecode " ] [ #root:#color:none ] [ #last ]
-        #call           [ #function:#format:serialize ] [ #scope:build:operants ]
-        #print_line     [ #root:#color:magenta ] [ #data "build:operants " ] [ #root:#color:none ] [ #last ]
-        #call           [ #function:#format:serialize ] [ #scope:build:memory ]
-        #print_line     [ #root:#color:magenta ] [ #data "build:memory " ] [ #root:#color:none ] [ #last ]
-
-        @ core modules in the same order that they are in the core
-        #call           [ #function:#format:serialize ] [ #scope:build:modules ]
-        #print_line     [ #root:#color:magenta ] [ #data "build:modules " ] [ #root:#color:none ] [ #last ]
-        #call           [ #function:#format:serialize ] [ #scope:build:resolved_modules ]
-        #print_line     [ #root:#color:magenta ] [ #data "build:resolved_modules " ] [ #root:#color:none ] [ #last ]
-
-        @ module lookup table and drivers
-        #call           [ #function:#format:serialize ] [ #scope:build:module_lookup ]
-        #print_line     [ #root:#color:magenta ] [ #data "build:module_lookup " ] [ #root:#color:none ] [ #last ]
-        #call           [ #function:#format:serialize ] [ #scope:build:driven ]
-        #print_line     [ #root:#color:magenta ] [ #data "build:driven " ] [ #root:#color:none ] [ #last ]
-
-        @ module counters and micro instruction widths
-        #call           [ #function:#format:serialize ] [ #scope:build:counter ]
-        #print_line     [ #root:#color:magenta ] [ #data "build:counter " ] [ #root:#color:none ] [ #last ]
-        #call           [ #function:#format:serialize ] [ #scope:build:micro_instruction_width ]
-        #print_line     [ #root:#color:magenta ] [ #data "build:micro_instruction_width " ] [ #root:#color:none ] [ #last ]
-
-        @ directives
-        #call           [ #function:#format:level ] [ #scope:build:directives ] [ #data 80 ]
-        #print_line     [ #root:#color:magenta ] [ #data "build:directives " ] [ #root:#color:none ] [ #last ]
-
-        @ memory map (if present)
-        #if             [ #data #present ] [ #scope:build ] [ #data memory_map ]
-        #call           [ #function:#format:serialize ] [ #scope:build:memory_map ]
-        #print_line     [ #root:#color:magenta ] [ #data "build:memory_map " ] [ #root:#color:none ] [ #last ]
-        #end
-
-        @ code map (if present)
-        #if             [ #data #present ] [ #scope:build ] [ #data code_map ]
-        #call           [ #function:#format:serialize ] [ #scope:build:code_map ]
-        #print_line     [ #root:#color:magenta ] [ #data "build:code_map " ] [ #root:#color:none ] [ #last ]
-        #end
-
-        @ sections and section labels
-        #call           [ #function:#format:serialize ] [ #scope:build:code_sections ]
-        #print_line     [ #root:#color:magenta ] [ #data "build:code_sections " ] [ #root:#color:none ] [ #last ]
-        #call           [ #function:#format:serialize ] [ #scope:build:memory_sections ]
-        #print_line     [ #root:#color:magenta ] [ #data "build:memory_sections " ] [ #root:#color:none ] [ #last ]
-        #call           [ #function:#format:serialize ] [ #scope:build:labels ]
-        #print_line     [ #root:#color:magenta ] [ #data "build:labels " ] [ #root:#color:none ] [ #last ]
-
-        @ entire compiler
-        #call           [ #function:#format:level ] [ #scope:build ] [ #data 80 ]
-        #print_line     [ #root:#color:magenta ] [ #data "build " ] [ #root:#color:none ] [ #last ]
     ]
 }

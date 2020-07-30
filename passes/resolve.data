@@ -19,7 +19,7 @@
 
         @ true
         #else           [ #data #true ] [ #scope:value ]
-        #return         [ #data -1 ]
+        #return         [ #data 1 ]
 
         @ false
         #else           [ #data #false ] [ #scope:value ]
@@ -140,27 +140,27 @@
         register [ [ #single self ]
 
             @ make sure register group exists
-            #if             [ #data #not_present ] [ #build:module_lookup ] [ #scope:self:steps:1:part ]
-            #print_line     [ #root:#color:red ] [ #data "\nunknown register group " ] [ #scope:self:steps:1:part ] [ #root:#color:none ]
-            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:self:steps:1:position:part ]
+            #if             [ #data #not_present ] [ #build:module_lookup ] [ #scope:self:type ]
+            #print_line     [ #root:#color:red ] [ #data "\nunknown register group " ] [ #scope:self:type ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:self:#position:type ]
             #print_line
             #error          [ #data "register group " ] [ #scope:self:sublabel ] [ #data " is not part of the core" ]
             #end
 
             @ get the register entry from the lookup
-            #index          [ #build:module_lookup ] [ #scope:self:steps:1:part ]
+            #index          [ #build:module_lookup ] [ #scope:self:type ]
             #modify         [ #data #scope:group ] [ #last ]
 
             @ make sure register exists
-            #if             [ #data #not_present ] [ #scope:group ] [ #scope:self:steps:2:part ]
-            #print_line     [ #root:#color:red ] [ #data "\ninvalid register " ] [ #scope:self:steps:2:part ] [ #root:#color:none ]
-            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:self:steps:2:position:part ]
+            #if             [ #data #not_present ] [ #scope:group ] [ #scope:self:register ]
+            #print_line     [ #root:#color:red ] [ #data "\ninvalid register " ] [ #scope:self:register ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:self:#position:register ]
             #print_line
-            #error          [ #data "register " ] [ #scope:self:sublabel ] [ #data " is not part of " ] [ #scope:self:steps:1:part ]
+            #error          [ #data "register " ] [ #scope:self:sublabel ] [ #data " is not part of " ] [ #scope:self:register ]
             #end
 
             @ create a path to the register and return it
-            #path           [ #scope:self:steps:1:part ] [ #scope:self:steps:2:part ]
+            #path           [ #scope:self:type ] [ #scope:self:register ]
             #return         [ #last ]
         ]
 
@@ -577,11 +577,11 @@
             @ memory, operant or data register
             #if             [ #data #present ] [ #last:instance ] [ #data register ]
             #if             [ #data #equals ] [ #last:instance:register ] [ #data memory ]
-            #call           [ #function:resolve:register_entry ] [ #data memory ] [ #last:instance:count ] [ #data !true ]
+            #call           [ #function:resolve:register_entry ] [ #data memory ] [ #last:instance:count ] [ #data $true ]
             #else           [ #data #equals ] [ #last:instance:register ] [ #data operant ]
-            #call           [ #function:resolve:register_entry ] [ #data operant ] [ #last:instance:count ] [ #data !false ]
+            #call           [ #function:resolve:register_entry ] [ #data operant ] [ #last:instance:count ] [ #data $false ]
             #else           [ #data #equals ] [ #last:instance:register ] [ #data data ]
-            #call           [ #function:resolve:register_entry ] [ #data data ] [ #last:instance:count ] [ #data !true ]
+            #call           [ #function:resolve:register_entry ] [ #data data ] [ #last:instance:count ] [ #data $true ]
             #end
 
             @ module

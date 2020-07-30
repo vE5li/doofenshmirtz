@@ -1,0 +1,32 @@
+component InstructionModule<count0, count1>(in clock, in selector0[#selector(#count0)], in selector1[#selector(#count1)], in source0[#bit_width:0][#count0:0], in source1[#bit_width:0][#count1:0], out destination[#register][0:3], out program_counter[#counter_width:0]) {
+    Register buffer0 := 0
+    Register buffer1 := 0
+    Register buffer2 := 0
+    destination[0] := data0
+    destination[1] := data1
+    destination[2] := data2
+    program_counter := buffer2
+
+    on falling clock {
+        data0 := buffer0
+        data1 := buffer1
+        data2 := buffer2
+    }
+
+    on rising clock {
+        if #count0 > 0 && &selector0 == 0 {
+            buffer0 := source0[selector0]
+        }
+
+        if #count1 > 0 && &selector1 == 0 {
+            buffer1 := source1[selector1]
+        }
+
+        if buffer1 != 0 {
+            buffer2 := bufer0
+            buffer1 := 0
+        } else {
+            buffer2 += 1
+        }
+    }
+}

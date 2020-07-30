@@ -1,4 +1,4 @@
-component ComparitorModule<count0, count1>(in clock, in selector0[#selector(#count0)], in selector1[#selector(#count1)], in source0[#source(count0)], in source1[#source(count1)], out destination[#register][0:4]) {
+component ComparitorModule<count0, count1>(in clock, in selector0[#selector(#count0)], in selector1[#selector(#count1)], in source0[#bit_width:0][#count0:0], in source1[#bit_width:0][#count1:0], out destination[#register][0:4]) {
     Wire destination_wire[#register][2:0]
     Wire buffer_wire[#register][2:0]
     Register data[3:0]

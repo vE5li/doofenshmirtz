@@ -14,7 +14,7 @@ component Subtractor(in input0[#register], in input1[#register], out difference[
     borrow_out := borrow[#bit_width - 1]
 }
 
-component SubtractorComponent<count0, count1>(in clock, in selector0[#selector(#count0)], in selector1[#selector(#count1)], in source0[#source(#count0)], in source1[#source(#count1)], out destination[#register][0:4]) {
+component SubtractorComponent<count0, count1>(in clock, in selector0[#selector(#count0)], in selector1[#selector(#count1)], in source0[#bit_width:0][#count0:0], in source1[#bit_width:0][#count1:0], out destination[#register][0:4]) {
     Wire borrow_out
     BusRegister<#count0>(clock, selector0, source0, destination[0])
     BusRegister<#count1>(clock, selector1, source1, destination[1])

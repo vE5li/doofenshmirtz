@@ -1,0 +1,17 @@
+valid_registers [ data memory operant ]
+
+resource {
+    instruction     $true  @ program counter
+    bytecode        $false @ entire bytecode
+    memory          $false @ entire memory map
+    operants        $false @ all operants
+    selector        $true  @ memory selector
+}
+
+#function {
+
+    print_pass [ [ #single pass ]
+        #call           [ #function:#format:tag ] [ #root:#color:magenta ] [ #data "pass" ]
+        #call           [ #function:#print:debug ] [ #last ] [ #data " running " ] [ #scope:pass ]
+    ]
+}

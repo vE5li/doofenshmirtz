@@ -126,7 +126,7 @@
 
             @ check if its a logical operator
             #if             [ #data #contains ] [ #scope:source:2 ] [ #data logical_ ]
-            #split          [ #scope:source:2 ] [ #data '_' ] [ #data !true ]
+            #split          [ #scope:source:2 ] [ #data '_' ] [ #data $true ]
             #keyword        [ #last:2 ]
             #modify         [ #data #scope:instruction ] [ #last ]
 
@@ -301,11 +301,11 @@
 
             @ if value is a boolean, integer or character return true
             #if             [ #data #boolean ] [ #scope:value ]
-            #return         [ #data !true ]
+            #return         [ #data $true ]
             #else           [ #data #integer ] [ #scope:value ]
-            #return         [ #data !true ]
+            #return         [ #data $true ]
             #else           [ #data #character ] [ #scope:value ]
-            #return         [ #data !true ]
+            #return         [ #data $true ]
 
             @ otherwise return the type of value
             #else

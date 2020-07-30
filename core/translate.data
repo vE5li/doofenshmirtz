@@ -1,0 +1,12 @@
+#translate {
+
+    #template [
+        chunk           "chunk"
+        chunk_piece     "section or offset"
+        
+    ]
+
+    #operator [
+        logical_and     "logical and"
+    ]
+}

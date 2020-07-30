@@ -16,8 +16,15 @@
         [                             [ #template   value    [ value    ] ] ]
     ]
 
+    register_type [
+        [ [ #keyword type [ data    ] ] ]
+        [ [ #keyword type [ memory  ] ] ]
+        [ [ #keyword type [ operant ] ] ]
+    ]
+
     register [ { resolve [ resolve:register ] reduce [ reduce:register ] }
-        [ [ #confirmed steps [ #identifier ] [ #operator [ index ] ] ] ]
+        [ [ #identifier type ] [ #operator [ index ] ] [ #identifier register ] ]
+        [ [ #merge [ register_type ] ] [ #operator [ index ] ] [ #identifier register ] ]
     ]
 
     move [ { resolve [ resolve:move ] reduce [ reduce:move ] }
@@ -35,13 +42,13 @@
     ]
 
     specification [ { register [ register:specification ] }
-        [ [ #identifier [ register ] ] [ #identifier register ] [ #operator [ open_square ] ] [ #template count [ value ] ] [ #operator [ close_square ] ] ]
-        [ [ #identifier [ register ] ] [ #identifier register ]                               [ #data     count 1         ]                                ]
+        [ [ #keyword [ register ] ] [ #merge [ register_type ] ] [ #operator [ open_square ] ] [ #template count [ value ] ] [ #operator [ close_square ] ] ]
+        [ [ #keyword [ register ] ] [ #merge [ register_type ] ]                               [ #data     count 1         ]                                ]
     ]
 
     module [ { register [ register:module ] }
-        [ [ #identifier [ module ] ] [ #identifier module ] [ #operator [ open_square ] ] [ #template count [ value ] ] [ #operator [ close_square ] ] ]
-        [ [ #identifier [ module ] ] [ #identifier module ]                               [ #data     count 1         ]                                ]
+        [ [ #keyword [ module ] ] [ #identifier module ] [ #operator [ open_square ] ] [ #template count [ value ] ] [ #operator [ close_square ] ] ]
+        [ [ #keyword [ module ] ] [ #identifier module ]                               [ #data     count 1         ]                                ]
     ]
 
     core_block [
@@ -50,8 +57,8 @@
     ]
 
     core_section [ { register [ register:core_section ] }
-        [ [ #identifier identifier [ core ] ] [ #operator [ open_curly ] ] [ #list specifications [ #template [ core_block ] ] ] [ #operator [ close_curly ] ] ]
-        [ [ #identifier identifier [ core ] ] [ #operator [ open_curly ] ]                                                       [ #operator [ close_curly ] ] ]
+        [ [ #keyword identifier [ core ] ] [ #operator [ open_curly ] ] [ #list specifications [ #template [ core_block ] ] ] [ #operator [ close_curly ] ] ]
+        [ [ #keyword identifier [ core ] ] [ #operator [ open_curly ] ]                                                       [ #operator [ close_curly ] ] ]
     ]
 
     code_block [ { register [ register:block ] reduce [ reduce:block ] }
@@ -60,10 +67,10 @@
     ]
 
     code_section [ { register [ register:code_section ] resolve [ resolve:code_section ] reduce [ reduce:code_section ] }
-        [ [ #identifier [ code ] ] [ #identifier identifier ] [ #operator [ open_curly ] ] [ #list blocks [ #template [ code_block ] ] ] [ #operator [ close_curly ] ] ]
-        [ [ #identifier [ code ] ] [ #identifier identifier ] [ #operator [ open_curly ] ]                                               [ #operator [ close_curly ] ] ]
-        [ [ #identifier [ code ] ]                            [ #operator [ open_curly ] ] [ #list blocks [ #template [ code_block ] ] ] [ #operator [ close_curly ] ] ]
-        [ [ #identifier [ code ] ]                            [ #operator [ open_curly ] ]                                               [ #operator [ close_curly ] ] ]
+        [ [ #keyword [ code ] ] [ #identifier identifier ] [ #operator [ open_curly ] ] [ #list blocks [ #template [ code_block ] ] ] [ #operator [ close_curly ] ] ]
+        [ [ #keyword [ code ] ] [ #identifier identifier ] [ #operator [ open_curly ] ]                                               [ #operator [ close_curly ] ] ]
+        [ [ #keyword [ code ] ]                            [ #operator [ open_curly ] ] [ #list blocks [ #template [ code_block ] ] ] [ #operator [ close_curly ] ] ]
+        [ [ #keyword [ code ] ]                            [ #operator [ open_curly ] ]                                               [ #operator [ close_curly ] ] ]
     ]
 
     memory_block [ { register [ register:block ] reduce [ reduce:block ] }
@@ -72,10 +79,10 @@
     ]
 
     memory_section [ { register [ register:memory_section ] resolve [ resolve:memory_section ] reduce [ reduce:memory_section ] }
-        [ [ #identifier [ memory ] ] [ #identifier identifier ] [ #operator [ open_curly ] ] [ #list blocks [ #template [ memory_block ] ] ] [ #operator [ close_curly ] ] ]
-        [ [ #identifier [ memory ] ] [ #identifier identifier ] [ #operator [ open_curly ] ]                                                 [ #operator [ close_curly ] ] ]
-        [ [ #identifier [ memory ] ]                            [ #operator [ open_curly ] ] [ #list blocks [ #template [ memory_block ] ] ] [ #operator [ close_curly ] ] ]
-        [ [ #identifier [ memory ] ]                            [ #operator [ open_curly ] ]                                                 [ #operator [ close_curly ] ] ]
+        [ [ #keyword [ memory ] ] [ #identifier identifier ] [ #operator [ open_curly ] ] [ #list blocks [ #template [ memory_block ] ] ] [ #operator [ close_curly ] ] ]
+        [ [ #keyword [ memory ] ] [ #identifier identifier ] [ #operator [ open_curly ] ]                                                 [ #operator [ close_curly ] ] ]
+        [ [ #keyword [ memory ] ]                            [ #operator [ open_curly ] ] [ #list blocks [ #template [ memory_block ] ] ] [ #operator [ close_curly ] ] ]
+        [ [ #keyword [ memory ] ]                            [ #operator [ open_curly ] ]                                                 [ #operator [ close_curly ] ] ]
     ]
 
     operator [
@@ -144,8 +151,8 @@
     ]
 
     define_section [ { register [ register:define_section ] }
-        [ [ #identifier [ define ] ] [ #operator [ open_curly ] ] [ #list blocks [ #template [ define_block ] ] ] [ #operator [ close_curly ] ] ]
-        [ [ #identifier [ define ] ] [ #operator [ open_curly ] ]                                                 [ #operator [ close_curly ] ] ]
+        [ [ #keyword [ define ] ] [ #operator [ open_curly ] ] [ #list blocks [ #template [ define_block ] ] ] [ #operator [ close_curly ] ] ]
+        [ [ #keyword [ define ] ] [ #operator [ open_curly ] ]                                                 [ #operator [ close_curly ] ] ]
     ]
 
     chunk_piece [ { register [ register:chunk_piece ] }
@@ -153,22 +160,16 @@
         [ [ #identifier identifier           ] ]
     ]
 
-    code_chunk [ { register [ register:chunk ] }
-        [ [ #template base [ directive ] ] [ #operator [ move ] ] [ #list pieces [ #template [ chunk_piece ] ] [ #operator [ move ] ] ] ]
-        [ [ #integer  base               ] [ #operator [ move ] ] [ #list pieces [ #template [ chunk_piece ] ] [ #operator [ move ] ] ] ]
-    ]
-
-    memory_chunk [ { register [ register:chunk ] }
-        [ [ #template base [ directive ] ] [ #operator [ move ] ] [ #list pieces [ #template [ chunk_piece ] ] [ #operator [ move ] ] ] ]
-        [ [ #integer  base               ] [ #operator [ move ] ] [ #list pieces [ #template [ chunk_piece ] ] [ #operator [ move ] ] ] ]
+    chunk [ { register [ register:chunk ] }
+        [ [ #template base [ value ] ] [ #operator [ move ] ] [ #list pieces [ #template [ chunk_piece ] ] [ #operator [ move ] ] ] ]
     ]
 
     code_map [ { register [ register:code_map ] }
-        [ [ #identifier identifier [ code_map ] ] [ #operator [ open_curly ] ] [ #list chunks [ #template [ code_chunk ] ] ] [ #operator [ close_curly ] ] ]
+        [ [ #keyword identifier [ map ] ] [ #keyword type [ code ] ] [ #operator [ open_curly ] ] [ #list chunks [ #template [ chunk ] ] ] [ #operator [ close_curly ] ] ]
     ]
 
     memory_map [ { register [ register:memory_map ] }
-        [ [ #identifier identifier [ memory_map ] ] [ #operator [ open_curly ] ] [ #list chunks [ #template [ memory_chunk ] ] ] [ #operator [ close_curly ] ] ]
+        [ [ #keyword identifier [ map ] ] [ #keyword type [ memory ] ] [ #operator [ open_curly ] ] [ #list chunks [ #template [ chunk ] ] ] [ #operator [ close_curly ] ] ]
     ]
 
     section [
@@ -180,7 +181,7 @@
         [ [ #template data [ memory_map     ] ] ]
     ]
 
-    #top [ { define [ define:top ] indent [ indent:top ] register [ register:top ] resolve [ resolve:top ] reduce [ reduce:top ] generate [ generate:top ] }
+    #top [ { define [ define:top ] indent [ indent:top ] register [ register:top ] resolve [ resolve:top ] reduce [ reduce:top ] generate [ generate:top ] generate_verilog [ generate:top ] }
         [ [ #list sections [ #template [ section ] ] ] ]
         [                                              ]
     ]

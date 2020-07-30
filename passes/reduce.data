@@ -142,7 +142,7 @@
         ]
 
         register [ [ #single self ]
-            #path           [ #scope:self:steps:1:part ] [ #scope:self:steps:2:part ]
+            #path           [ #scope:self:type ] [ #scope:self:register ]
             #return         [ #last ]
         ]
 

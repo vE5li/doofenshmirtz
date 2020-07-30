@@ -1,4 +1,4 @@
-component BusRegister<count>(in clock, in selector[#selector(#count)], in source[#source(#count)], out destination[#register]) {
+component BusRegister<count>(in clock, in selector[#selector(#count)], in source[#bit_width:0][#count:0], out destination[#register]) {
     Register buffer := 0
     Register data := 0
     destination := data
@@ -14,7 +14,7 @@ component BusRegister<count>(in clock, in selector[#selector(#count)], in source
     }
 }
 
-component BufferedBusRegister<count>(in clock, in selector[#selector(#count)], in source[#source(#count)], out destination[#register], out internal[#register]) {
+component BufferedBusRegister<count>(in clock, in selector[#selector(#count)], in source[#bit_width:0][#count:0], out destination[#register], out internal[#register]) {
     Register buffer := 0
     Register data := 0
     internal := buffer
@@ -22,44 +22,11 @@ component BufferedBusRegister<count>(in clock, in selector[#selector(#count)], i
 
     on rising clock {
         if #count > 0 && &selector == 0 {
-            buffer := source[#bit_width +:: selector * #bit_width]
+            buffer := source[selector]
         }
     }
 
     on falling clock {
         data := buffer
-    }
-}
-
-component InstructionModule<count0, count1>(in clock, in selector0[#selector(#count0)], in selector1[#selector(#count1)], in source0[#source(#count0)], in source1[#source(#count1)], out destination[#register][0:3], out program_counter[#counter_width:0]) {
-    Register buffer0 := 0
-    Register buffer1 := 0
-    Register buffer2 := 0
-    destination[0] := data0
-    destination[1] := data1
-    destination[2] := data2
-    program_counter := buffer2
-
-    on falling clock {
-        data0 := buffer0
-        data1 := buffer1
-        data2 := buffer2
-    }
-
-    on rising clock {
-        if #count0 > 0 && &selector0 == 0 {
-            buffer0 := source0[#bit_width +:: selector0 * #bit_width]
-        }
-
-        if #count1 > 0 && &selector1 == 0 {
-            buffer1 := source1[#bit_width +:: selector1 * #bit_width]
-        }
-
-        if buffer1 != 0 {
-            buffer2 := bufer0
-            buffer1 := 0
-        } else {
-            buffer2 += 1
-        }
     }
 }

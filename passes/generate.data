@@ -112,7 +112,7 @@
 
             @ seperate the source registers with a comma and add them to the code
             #join           [ #scope:source_wires ] [ #data ", " ]
-            #string         [ #scope:code ] [ #data ", { " ] [ #last ] [ #data " }" ]
+            #string         [ #scope:code ] [ #data ", [ " ] [ #last ] [ #data " ]" ]
             #modify         [ #data #scope:code ] [ #last ]
 
             @ if there are no source registers
@@ -166,7 +166,7 @@
             #modify         [ #data #scope:code ] [ #last ]
 
             @ generate top module
-            #string         [ #scope:code ] [ #data "\n\ncomponent Top(in clock) {\n" ]
+            #string         [ #scope:code ] [ #data "\n\ncomponent Top(in clock) {\n\n" ]
             #string         [ #last ] [ #data "    Register memory[#bit_width:0][#memory_size:0]\n" ]
             #string         [ #last ] [ #data "    Register instruction[#instruction_width:0]\n" ]
             #string         [ #last ] [ #data "    Register bytecode[#instruction_width:0][" ] [ #scope:self:code_size ] [ #data ":0]\n" ]
@@ -402,9 +402,11 @@
             #modify         [ #data #scope:code ] [ #last ]
             #end
 
-            @ append newline
+            @ add spacing
+            #if             [ #data #not_zero ] [ #build:counter:memory ]
             #string         [ #scope:code ] [ #data "\n" ]
             #modify         [ #data #scope:code ] [ #last ]
+            #end
 
             @ initialize memory
             #iterate        [ #build:memory ]
@@ -427,7 +429,8 @@
             #iterate        [ #build:modules ]
             #if             [ #data #present ] [ #last:instance ] [ #data module ]
             #index          [ #root:module_description ] [ #last:instance:module ]
-            #string         [ #root:module_directory ] [ #last:source ]
+            #iterate        [ #last:source ]
+            #string         [ #root:module_directory ] [ #last:instance ]
 
             @ if the file is not already added to the code, add it and mark the file as added
             #if             [ #data #not_contains ] [ #scope:sourced ] [ #last ]
@@ -436,6 +439,7 @@
             #read_file      [ #scope:sourced:-1 ]
             #string         [ #scope:code ] [ #last ] [ #data "\n" ]
             #modify         [ #data #scope:code ] [ #last ]
+            #end
             #end
             #end
             #end

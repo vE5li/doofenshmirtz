@@ -5,7 +5,7 @@ module_description {
         uses [ instruction ]
         drives [ instruction ]
         name "InstructionModule"
-        source "register.uni"
+        source [ "register.uni" "instruction.uni" ]
     }
 
     selector {
@@ -13,42 +13,42 @@ module_description {
         uses [ selector ]
         drives [ selector ]
         name "SelectorModule"
-        source "selector.uni"
+        source [ "register.uni" "selector.uni" ]
     }
 
     adder {
         registers [ #in0 #in1 out overflow ]
         name "AdderModule"
-        source "adder.uni"
+        source [ "register.uni" "adder.uni" ]
     }
 
     subtractor {
         registers [ #in0 #in1 out overflow ]
         name "SubtractorModule"
-        source "subtractor.uni"
+        source [ "register.uni" "subtractor.uni" ]
     }
 
     comparitor {
         registers [ #in0 #in1 equal bigger smaller ]
         name "ComparitorModule"
-        source "comparitor.uni"
+        source [ "register.uni" "comparitor.uni" ]
     }
 
     divider {
         registers [ #in0 #in1 out remainder ]
         name "DividerModule"
-        source "divider.uni"
+        source [ "register.uni" "divider.uni" ]
     }
 
     multiplier {
         registers [ #in0 #in1 out ]
         name "MultiplierModule"
-        source "multiplier.uni"
+        source [ "register.uni" "multiplier.uni" ]
     }
 
     inverter {
         registers [ #in out ]
         name "InverterModule"
-        source "inverter.uni"
+        source [ "register.uni" "inverter.uni" ]
     }
 }

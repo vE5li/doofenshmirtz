@@ -1,0 +1,54 @@
+module_description {
+
+    instruction {
+        registers [ address #jump #condition ]
+        uses [ instruction ]
+        drives [ instruction ]
+        name "instruction_module"
+        source [ "register.v" "instruction.v" ]
+    }
+
+    selector {
+        registers [ #address ]
+        uses [ selector ]
+        drives [ selector ]
+        name "selector_module"
+        source [ "register.v" "selector.v" ]
+    }
+
+    adder {
+        registers [ #in0 #in1 out overflow ]
+        name "adder_module"
+        source [ "register.v" "adder.v" ]
+    }
+
+    subtractor {
+        registers [ #in0 #in1 out overflow ]
+        name "subtractor_module"
+        source [ "register.v" "subtractor.v" ]
+    }
+
+    comparitor {
+        registers [ #in0 #in1 equal bigger smaller ]
+        name "comparitor_module"
+        source [ "register.v" "comparitor.v" ]
+    }
+
+    divider {
+        registers [ #in0 #in1 out remainder ]
+        name "divider_module"
+        source [ "register.v" "divider.v" ]
+    }
+
+    multiplier {
+        registers [ #in0 #in1 out ]
+        name "multiplier_module"
+        source [ "register.v" "multiplier.v" ]
+    }
+
+    inverter {
+        registers [ #in out ]
+        name "inverter_module"
+        source [ "register.v" "inverter.v" ]
+    }
+}

@@ -11,9 +11,9 @@
             #end
 
             @ make sure that the register type is valid
-            #if             [ #data #not_contains ] [ #root:valid_registers ] [ #scope:self:register ]
-            #print_line     [ #root:#color:red ] [ #data "\ninvalid register type " ] [ #scope:self:register ] [ #root:#color:none ]
-            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:self:#position:register ]
+            #if             [ #data #not_contains ] [ #root:valid_registers ] [ #scope:self:type ]
+            #print_line     [ #root:#color:red ] [ #data "\ninvalid register type " ] [ #scope:self:type ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:self:#position:type ]
             #print_line
             #error          [ #data "valid register types are data, memory and operant" ]
             #end
@@ -21,14 +21,14 @@
             @ debug message
             #if             [ #data #true ] [ #root:debug ]
             #if             [ #data #equals ] [ #scope:self:count ] [ #data 1 ]
-            #call           [ #function:#print:debug ] [ #data "adding " ] [ #scope:self:register ] [ #data " register" ]
+            #call           [ #function:#print:debug ] [ #data "adding " ] [ #scope:self:type ] [ #data " register" ]
             #else
-            #call           [ #function:#print:debug ] [ #data "adding " ] [ #scope:self:count ] [ #data " " ] [ #scope:self:register ] [ #data " registers" ]
+            #call           [ #function:#print:debug ] [ #data "adding " ] [ #scope:self:count ] [ #data " " ] [ #scope:self:type ] [ #data " registers" ]
             #end
             #end
 
             @ add the register type and count to the modules list
-            #map            [ #data register ] [ #scope:self:register ] [ #data count ] [ #scope:self:count ]
+            #map            [ #data register ] [ #scope:self:type ] [ #data count ] [ #scope:self:count ]
             #append         [ #build:modules ] [ #last ]
             #modify         [ #data #build:modules ] [ #last ]
             #return         [ #scope:self ]
@@ -143,29 +143,29 @@
 
             @ space
             #if             [ #data #equals ] [ #scope:self:type ] [ #data space ]
-            #call           [ #function:register:validate_type ] [ #scope:self ] [ #data space ] [ #data integer ] [ #data !false ]
+            #call           [ #function:register:validate_type ] [ #scope:self ] [ #data space ] [ #data integer ] [ #data $false ]
             #return         [ #scope:self:value ]
 
             @ string
             #else           [ #data #equals ] [ #scope:self:type ] [ #data string ]
-            #call           [ #function:register:validate_type ] [ #scope:self ] [ #data string ] [ #data string ] [ #data !false ]
+            #call           [ #function:register:validate_type ] [ #scope:self ] [ #data string ] [ #data string ] [ #data $false ]
             #length         [ #scope:self:value ]
             #add            [ #last ] [ #data 1 ]
             #return         [ #last ]
 
             @ character
             #else           [ #data #equals ] [ #scope:self:type ] [ #data character ]
-            #call           [ #function:register:validate_type ] [ #scope:self ] [ #data character ] [ #data character ] [ #data !false ]
+            #call           [ #function:register:validate_type ] [ #scope:self ] [ #data character ] [ #data character ] [ #data $false ]
             #return         [ #data 1 ]
 
             @ integer
             #else           [ #data #equals ] [ #scope:self:type ] [ #data integer ]
-            #call           [ #function:register:validate_type ] [ #scope:self ] [ #data integer ] [ #data integer ] [ #data !true ]
+            #call           [ #function:register:validate_type ] [ #scope:self ] [ #data integer ] [ #data integer ] [ #data $true ]
             #return         [ #data 1 ]
 
             @ float
             #else           [ #data #equals ] [ #scope:self:type ] [ #data float ]
-            #call           [ #function:register:validate_type ] [ #scope:self ] [ #data float ] [ #data float ] [ #data !false ]
+            #call           [ #function:register:validate_type ] [ #scope:self ] [ #data float ] [ #data float ] [ #data $false ]
             #return         [ #data 1 ]
 
             @ invalid data type
@@ -350,16 +350,10 @@
 
         chunk [ [ #single self ] [ #single chunks ]
 
-            @ if the chunk has a base offset
-            #if             [ #data #present ] [  #scope:self ] [ #data base ]
+            @ create entry with base offset
             #map            [ #data base ] [ #scope:self:base ] [ #data position ] [ #scope:self:#position:base ]
             #list           [ #last ]
             #modify         [ #data #scope:entry ] [ #last ]
-
-            @ if the chunk does not have a base offset
-            #else
-            #modify         [ #data #scope:entry ] [ #data [ ] ]
-            #end
 
             @ pass all pieces and fill entry list
             #iterate        [ #scope:self:pieces ]
@@ -384,7 +378,8 @@
             #index          [ #build ] [ #scope:index ]
             #call           [ #function:#position:print ] [ #root:#color:red ] [ #last:position ]
             #print_line     [ #root:#color:red ] [ #data "\nredefined here" ] [ #root:#color:none ]
-            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:map:#position:identifier ]
+            #range          [ #scope:map:#position:identifier ] [ #scope:map:#position:type ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #last ]
             #print_line
             #error          [ #scope:type ] [ #data " sections may only be mapped once" ]
             #end
@@ -402,7 +397,8 @@
             #end
 
             @ add map entry to #build
-            #map            [ #data chunks ] [ #scope:chunks ] [ #data position ] [ #scope:map:#position:identifier ]
+            #range          [ #scope:map:#position:identifier ] [ #scope:map:#position:type ]
+            #map            [ #data chunks ] [ #scope:chunks ] [ #data position ] [ #last ]
             #insert         [ #build ] [ #scope:index ] [ #last ]
             #modify         [ #data #build ] [ #last ]
         ]
@@ -428,11 +424,6 @@
             #iterate        [ #root:module_description ]
             #modify         [ #data #scope:description ] [ #last ]
             #if             [ #data #present ] [ #scope:description:instance ] [ #data drives ]
-
-            @ make sure that the module names are not the same as any register type
-            #if             [ #data #contains ] [ #root:valid_registers ] [ #scope:description:selector ]
-            #error          [ #data "driving modules may not be called " ] [ #scope:description:selector ]
-            #end
 
             @ make sure that the driven resources are valid
             #iterate        [ #scope:description:instance:drives ]
