@@ -23,7 +23,7 @@ directory {
     process_arguments [ [ #single arguments ]
 
         @ create configuration and index
-        #modify         [ #data #scope:configuration ] [ #data { files [ ] debug $false verilog $false output "output.uni" } ]
+        #modify         [ #data #scope:configuration ] [ #data { help $false files [ ] debug $false verilog $false output "output.uni" } ]
         #length         [ #scope:arguments ]
         #modify         [ #data #scope:count ] [ #last ]
         #modify         [ #data #scope:index ] [ #data 1 ]
@@ -42,6 +42,10 @@ directory {
         #index          [ #scope:arguments ] [ #scope:index ]
         #modify         [ #data #scope:configuration:output ] [ #last ]
 
+        @ show help menu
+        #else           [ #data #equals ] [ #last ] [ #data "-h" ]
+        #modify         [ #data #scope:configuration:help ] [ #data $true ]
+
         @ enable debug
         #else           [ #data #equals ] [ #last ] [ #data "-d" ]
         #ensure         [ #data #not_present ] [ #scope ] [ #data debug_set ] [ #data "debug flag may only be set once" ]
@@ -49,7 +53,7 @@ directory {
         #modify         [ #data #scope:configuration:debug ] [ #data $true ]
 
         @ verilog mode
-        #else           [ #data #equals ] [ #last ] [ #data "-V" ]
+        #else           [ #data #equals ] [ #last ] [ #data "-verilog" ]
         #ensure         [ #data #not_present ] [ #scope ] [ #data verilog_set ] [ #data "verilog flag may only be set once" ]
         #modify         [ #data #scope:verilog_set ] [ #data $true ]
         #modify         [ #data #scope:configuration:verilog ] [ #data $true ]
@@ -60,8 +64,11 @@ directory {
         @ add source file
         #else
         #modify         [ #data #scope:file ] [ #last ]
-        #index          [ #scope:file ] [ #data 1 ]
-        #ensure         [ #data #not_equals ] [ #last ] [ #data '-' ] [ #data "invalid flag " ] [ #scope:file ]
+        #if             [ #data #equals ] [ #scope:file:1 ] [ #data '-' ]
+        #print_line     [ #data "invalid flag " ] [ #scope:file ]
+        #modify         [ #data #scope:configuration:help ] [ #data $true ]
+        #return         [ #scope:configuration ]
+        #end
         #ensure         [ #data #not_contains ] [ #scope:configuration:files ] [ #scope:file ] [ #data "file " ] [ #scope:file ] [ #data " may only be passed to the compiler once" ]
         #append         [ #scope:configuration:files ] [ #scope:file ]
         #modify         [ #data #scope:configuration:files ] [ #last ]
@@ -75,12 +82,32 @@ directory {
         @ if the compiler uses the verilog backend and no output is specified, change the output directory
         #if             [ #data #true ] [ #scope:configuration:verilog ]
         #if             [ #data #not_present ] [ #scope ] [ #data output_set ]
-        #modify         [ #data #scope:configuration:output ] [ #data "output/verilog" ]
+        #modify         [ #data #scope:configuration:output ] [ #data "verilog/" ]
+        #else           [ #data #not_equals ] [ #scope:configuration:output:-1 ] [ #data '/' ]
+        #append         [ #scope:configuration:output ] [ #data '/' ]
+        #modify         [ #data #scope:configuration:output ] [ #last ]
         #end
         #end
 
         @ return configuration
         #return         [ #scope:configuration ]
+    ]
+
+    show_help [
+        #print_line
+        #print_line     [ #data "usage:" ]
+        #print_line     [ #data "  $         doofenshmirtz <source files> [options]" ]
+        #print_line
+        #print_line     [ #data "options:" ]
+        #print_line     [ #data " -h         show help menu" ]
+        #print_line     [ #data " -o         set output file" ]
+        #print_line     [ #data " -d         enable debug mode" ]
+        #print_line     [ #data " -verilog   enable verilog backend" ]
+        #print_line
+        #print_line     [ #data "contact:" ]
+        #print_line     [ #data "  #         github.com/ve5li/ktl9" ]
+        #print_line     [ #data "  @         ve5li@tuta.io" ]
+        #print_line
     ]
 
     #main [ [ #list arguments ]
@@ -92,6 +119,12 @@ directory {
         @ process command line arguments
         #call           [ #function:process_arguments ] [ #scope:arguments ]
         #modify         [ #data #scope:configuration ] [ #last ]
+
+        @ if help menu should be displayed
+        #if             [ #data #true ] [ #scope:configuration:help ]
+        #call           [ #function:show_help ]
+        #return
+        #end
 
         @ load the compiler core
         #map            [ #data debug ] [ #scope:configuration:debug ]
