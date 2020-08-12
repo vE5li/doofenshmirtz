@@ -12,8 +12,12 @@ module instruction_module(clock, selector0, selector1, source0, source1, destina
     output [`bit_width - 1:0] destination0, destination1, destination2;
     output [`counter_width - 1:0] program_counter;
 
-    reg [`bit_width - 1:0] buffer0, buffer1, buffer2;
-    reg [`bit_width - 1:0] data0, data1, data2;
+    reg [`bit_width - 1:0] buffer0 = 0;
+    reg [`bit_width - 1:0] buffer1 = 0;
+    reg [`bit_width - 1:0] buffer2 = 0;
+    reg [`bit_width - 1:0] data0 = 0;
+    reg [`bit_width - 1:0] data1 = 0;
+    reg [`bit_width - 1:0] data2 = 0;
 
     assign destination0 = data0;
     assign destination1 = data1;

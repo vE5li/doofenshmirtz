@@ -106,7 +106,7 @@
             #modify         [ #data #scope:wires ] [ #last ]
 
             @ add source register to source list
-            #append         [ #scope:source_wires ] [ #scope:wires ]
+            #push           [ #scope:source_wires ] [ #scope:wires ]
             #modify         [ #data #scope:source_wires ] [ #last ]
             #end
 
@@ -166,7 +166,7 @@
             #modify         [ #data #scope:code ] [ #last ]
 
             @ generate top module
-            #string         [ #scope:code ] [ #data "\n\ncomponent Top(in clock) {\n\n" ]
+            #string         [ #scope:code ] [ #data "\n\ncomponent Top(in clock) {\n" ]
             #string         [ #last ] [ #data "    Register memory[#bit_width:0][#memory_size:0]\n" ]
             #string         [ #last ] [ #data "    Register instruction[#instruction_width:0]\n" ]
             #string         [ #last ] [ #data "    Register bytecode[#instruction_width:0][" ] [ #scope:self:code_size ] [ #data ":0]\n" ]

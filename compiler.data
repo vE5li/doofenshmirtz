@@ -57,9 +57,6 @@ directory {
         #ensure         [ #data #not_present ] [ #scope ] [ #data verilog_set ] [ #data "verilog flag may only be set once" ]
         #modify         [ #data #scope:verilog_set ] [ #data $true ]
         #modify         [ #data #scope:configuration:verilog ] [ #data $true ]
-        #insert         [ #root:directory:module ] [ #data -2 ] [ #data "_verilog" ]
-        #modify         [ #data #root:directory:module ] [ #last ]
-        #modify         [ #data #root:pipeline:-1 ] [ #data generate_verilog ]
 
         @ add source file
         #else
@@ -87,6 +84,11 @@ directory {
         #append         [ #scope:configuration:output ] [ #data '/' ]
         #modify         [ #data #scope:configuration:output ] [ #last ]
         #end
+
+        @ update module directory for verilog
+        #insert         [ #root:directory:module ] [ #data -2 ] [ #data "_verilog" ]
+        #modify         [ #data #root:directory:module ] [ #last ]
+        #modify         [ #data #root:pipeline:-1 ] [ #data generate_verilog ]
         #end
 
         @ return configuration
@@ -126,8 +128,17 @@ directory {
         #return
         #end
 
+        @ verilog user prompt
+        #modify         [ #data #scope:testbench ] [ #data $false ]
+        #if             [ #data #true ] [ #scope:configuration:verilog ]
+        #input          [ #data "create a verilog testbench? [y/N] " ]
+        #if             [ #data #equals ] [ #last ] [ #data "y" ]
+        #modify         [ #data #scope:testbench ] [ #data $true ]
+        #end
+        #end
+
         @ load the compiler core
-        #map            [ #data debug ] [ #scope:configuration:debug ]
+        #map            [ #data debug ] [ #scope:configuration:debug ] [ #data testbench ] [ #scope:testbench ]
         #modify         [ #data #scope:compiler ] [ #last ]
         #iterate        [ #root:core ]
         #string         [ #root:directory:core ] [ #last:instance ] [ #data ".data" ]
@@ -234,8 +245,19 @@ directory {
         #if             [ #data #true ] [ #scope:configuration:debug ]
         #call           [ #function:#print:debug ] [ #data "writing code to file " ] [ #root:#color:magenta ] [ #scope:configuration:output ] [ #data "/top.v" ] [ #root:#color:none ]
         #end
+
+        @ if testbench
+        #if             [ #data #true ] [ #scope:testbench ]
+        #string         [ #scope:configuration:output ] [ #data "/top_tb.v" ]
+        #write_file     [ #last ] [ #scope:build:code ]
+        #string         [ #scope:configuration:output ] [ #data "/dummy.v" ]
+        #write_file     [ #last ] [ #data "" ]
+
+        @ if not testbench
+        #else
         #string         [ #scope:configuration:output ] [ #data "/top.v" ]
         #write_file     [ #last ] [ #scope:build:code ]
+        #end
 
         @ if not verilog mode
         #else

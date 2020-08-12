@@ -68,6 +68,6 @@ module subtractor_module(clock, selector0, selector1, source0, source1, destinat
 
     assign destination0 = input_wire[0];
     assign destination1 = input_wire[1];
-    assign destination3 = { `bit_width{ borrow_out } }; // add logic
+    assign destination3 = { borrow_out };
 
 endmodule

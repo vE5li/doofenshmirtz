@@ -45,7 +45,6 @@ module adder(input0, input1, sum, carry_out);
 
 endmodule
 
-
 module adder_module(clock, selector0, selector1, source0, source1, destination0, destination1, destination2, destination3);
 
     parameter count0 = 0;
@@ -68,6 +67,6 @@ module adder_module(clock, selector0, selector1, source0, source1, destination0,
 
     assign destination0 = input_wire[0];
     assign destination1 = input_wire[1];
-    assign destination3 = { `bit_width{ carry_out } };
+    assign destination3 = { carry_out };
 
 endmodule

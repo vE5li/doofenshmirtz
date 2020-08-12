@@ -108,7 +108,7 @@
             #modify         [ #data #scope:wires ] [ #last ]
 
             @ add source register to source list
-            #append         [ #scope:source_wires ] [ #scope:wires ]
+            #push           [ #scope:source_wires ] [ #scope:wires ]
             #modify         [ #data #scope:source_wires ] [ #last ]
             #end
 
@@ -159,8 +159,18 @@
             #ceiling        [ #last ]
             #modify         [ #data #scope:counter_width ] [ #last ]
 
-            @ generate code
-            #string         [ #data "`define bit_width " ] [ #scope:bit_width ]
+            @ code
+            #string
+
+            @ testbench header
+            #if             [ #data #true ] [ #root:testbench ]
+            #string         [ #last ] [ #data "`default_nettype none\n" ]
+            #string         [ #last ] [ #data "`timescale 100 ns / 10 ns\n" ]
+            #string         [ #last ] [ #data "`define file(x) `\"x.vcd`\"\n\n" ]
+            #end
+
+            @ define section
+            #string         [ #last ] [ #data "`define bit_width " ] [ #scope:bit_width ]
             #string         [ #last ] [ #data "\n`define bus_width " ] [ #scope:bus_width ]
             #string         [ #last ] [ #data "\n`define operant_width " ] [ #scope:operant_width ]
             #string         [ #last ] [ #data "\n`define memory_size " ] [ #scope:memory_size ]
@@ -170,11 +180,22 @@
             #string         [ #last ] [ #data "\n\n//define register := #bit_width:0" ]
             #string         [ #last ] [ #data "\n//define source(count) := #bit_width * #count:0" ]
             #string         [ #last ] [ #data "\n//define selector(count) := #ceiling(#logarithm(#count + 1, 2)):0" ]
-            #modify         [ #data #scope:code ] [ #last ]
+
+            @ top module appearance for testbench
+            #if             [ #data #true ] [ #root:testbench ]
+            #string         [ #last ] [ #data "\n\nmodule top_tb();\n\n" ]
+            #string         [ #last ] [ #data "    reg clock = 0;\n" ]
+            #string         [ #last ] [ #data "    always #0.5 clock = ~clock;\n\n" ]
+
+            @ top module appearance
+            #else
+            #string         [ #last ] [ #data "\n\nmodule top(clock, led1, led2, led3, led4, segment1_a, segment1_b, segment1_c, segment1_d, segment1_e, segment1_f, segment1_g, segment2_a, segment2_b, segment2_c, segment2_d, segment2_e, segment2_f, segment2_g);\n\n" ]
+            #string         [ #last ] [ #data "    input clock;\n" ]
+            #string         [ #last ] [ #data "    output led1, led2, led3, led4;\n" ]
+            #string         [ #last ] [ #data "    output segment1_a, segment1_b, segment1_c, segment1_d, segment1_e, segment1_f, segment1_g, segment2_a, segment2_b, segment2_c, segment2_d, segment2_e, segment2_f, segment2_g;\n\n" ]
+            #end
 
             @ generate top module
-            #string         [ #scope:code ] [ #data "\n\nmodule top(clock);\n\n" ]
-            #string         [ #last ] [ #data "    input clock;\n\n" ]
             #string         [ #last ] [ #data "    reg [`bit_width - 1:0] memory [`memory_size - 1:0];\n" ]
             #string         [ #last ] [ #data "    reg [`instruction_width - 1:0] instruction;\n" ]
             #string         [ #last ] [ #data "    reg [`instruction_width - 1:0] bytecode [" ] [ #scope:self:code_size ] [ #data " - 1:0];\n" ]
@@ -182,6 +203,13 @@
             #string         [ #last ] [ #data "    wire [`counter_width - 1:0] program_counter;\n" ]
             #string         [ #last ] [ #data "    wire [`selector_width - 1:0] memory_selector;\n" ]
             #string         [ #last ] [ #data "    wire [`bus_width - 1:0] bus;\n" ]
+
+            @ add segment displays
+            #if             [ #data #false ] [ #root:testbench ]
+            #string         [ #last ] [ #data "    wire [7:0] segment_input = { program_counter };\n\n" ]
+            #string         [ #last ] [ #data "    binary_segment segment1(clock, segment_input[7:4], segment1_a, segment1_b, segment1_c, segment1_d, segment1_e, segment1_f, segment1_g);\n" ]
+            #string         [ #last ] [ #data "    binary_segment segment2(clock, segment_input[3:0], segment2_a, segment2_b, segment2_c, segment2_d, segment2_e, segment2_f, segment2_g);" ]
+            #end
             #modify         [ #data #scope:code ] [ #last ]
 
             @ instruction, bus and operant offset
@@ -392,6 +420,13 @@
             #string         [ #scope:code ] [ #data "\n\n    initial begin\n" ]
             #modify         [ #data #scope:code ] [ #last ]
 
+            @ dumpfile for testbench
+            #if             [ #data #true ] [ #root:testbench ]
+            #string         [ #scope:code ] [ #data "\n        $dumpfile(`file(`VCD_OUTPUT));\n" ]
+            #string         [ #last ] [ #data "        $dumpvars(0, top_tb);\n\n" ]
+            #modify         [ #data #scope:code ] [ #last ]
+            #end
+
             @ generate empty instruction
             #modify         [ #data #scope:empty_instruction ] [ #data [ ] ]
             #for            [ #data 1 ] [ #build:counter:full_register ]
@@ -444,6 +479,14 @@
             #string         [ #scope:code ] [ #data "        memory[" ] [ #last ] [ #data "] <= " ] [ #scope:iterator:instance ] [ #data ";\n" ]
             #modify         [ #data #scope:code ] [ #last ]
             #end
+            #end
+
+            @ simulation time for testbenches
+            #if             [ #data #true ] [ #root:testbench ]
+            #string         [ #scope:code ] [ #data "\n        #200\n" ]
+            #string         [ #last ] [ #data "        $display(\"done\");\n" ]
+            #string         [ #last ] [ #data "        $finish;\n" ]
+            #modify         [ #data #scope:code ] [ #last ]
             #end
 
             @ end initial begin

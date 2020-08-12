@@ -1,29 +1,29 @@
 set_io clock 15
 
-set_io LED4 60
-set_io LED3 59
-set_io LED2 57
-set_io LED1 56
+set_io led1 56
+set_io led2 57
+set_io led3 59
+set_io led4 60
 
-set_io SWITCH1 53
-set_io SWITCH2 51
-set_io SWITCH3 54
-set_io SWITCH4 52
+set_io switch1 53
+set_io switch2 51
+set_io switch3 54
+set_io switch4 52
 
-set_io SEGMENT1A 3
-set_io SEGMENT1B 4
-set_io SEGMENT1C 93
-set_io SEGMENT1D 91
-set_io SEGMENT1E 90
-set_io SEGMENT1F 1
-set_io SEGMENT1G 2
-set_io SEGMENT2A 100
-set_io SEGMENT2B 99
-set_io SEGMENT2C 97
-set_io SEGMENT2D 95
-set_io SEGMENT2E 94
-set_io SEGMENT2F 8
-set_io SEGMENT2G 96
+set_io segment1_a 3
+set_io segment1_b 4
+set_io segment1_c 93
+set_io segment1_d 91
+set_io segment1_e 90
+set_io segment1_f 1
+set_io segment1_g 2
+set_io segment2_a 100
+set_io segment2_b 99
+set_io segment2_c 97
+set_io segment2_d 95
+set_io segment2_e 94
+set_io segment2_f 8
+set_io segment2_g 96
 
-set_io UART_RECEIVE 73
-set_io UART_TRANSMIT 74
+set_io serial_receive 73
+set_io serial_transmit 74

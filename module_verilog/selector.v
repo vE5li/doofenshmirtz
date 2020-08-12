@@ -9,4 +9,6 @@ module selector_module(clock, selector, source, destination, memory_selector);
     output [`bit_width - 1:0] destination;
     output [`selector_width - 1:0] memory_selector;
 
+    assign destination = { `bit_width{ 1'b0 } };
+
 endmodule

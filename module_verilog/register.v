@@ -93,3 +93,43 @@ endmodule
 //    assign destination = source;
 //
 //endmodule
+
+module binary_segment(clock, number, segment_a, segment_b, segment_c, segment_d, segment_e, segment_f, segment_g);
+
+    input clock;
+    input [3:0] number;
+
+    output segment_a, segment_b, segment_c, segment_d, segment_e, segment_f, segment_g;
+
+    reg [6:0] encoding = 7'h00;
+
+    always @(posedge clock) begin
+        case (number) // T RT RB B LB LT MD
+            4'b0000 : encoding <= 7'b0000001;
+            4'b0001 : encoding <= 7'b1001111;
+            4'b0010 : encoding <= 7'b0010010;
+            4'b0011 : encoding <= 7'b0000110;
+            4'b0100 : encoding <= 7'b1001100;
+            4'b0101 : encoding <= 7'b0100100;
+            4'b0110 : encoding <= 7'b0100000;
+            4'b0111 : encoding <= 7'b0001111;
+            4'b1000 : encoding <= 7'b0000000;
+            4'b1001 : encoding <= 7'b0000100;
+            4'b1010 : encoding <= 7'b0001000;
+            4'b1011 : encoding <= 7'b1100000;
+            4'b1100 : encoding <= 7'b0110001;
+            4'b1101 : encoding <= 7'b1000010;
+            4'b1110 : encoding <= 7'b0110000;
+            4'b1111 : encoding <= 7'b0111000;
+        endcase
+    end
+
+    assign segment_a = encoding[6];
+    assign segment_b = encoding[5];
+    assign segment_c = encoding[4];
+    assign segment_d = encoding[3];
+    assign segment_e = encoding[2];
+    assign segment_f = encoding[1];
+    assign segment_g = encoding[0];
+
+endmodule
