@@ -5,17 +5,17 @@ dependencies    [ format file color debug position ]
 pipeline        [ define indent register resolve reduce generate ]
 
 project {
-    name            "h0vs"
+    name            "doofenshmirtz"
     author          "ve5li"
     contact         "ve5li@tuta.io"
 }
 
 directory {
-    apio            "/usr/share/seamonkey/ktl9/apio/"
-    core            "/usr/share/seamonkey/ktl9/core/"
-    pass            "/usr/share/seamonkey/ktl9/passes/"
-    module          "/usr/share/seamonkey/ktl9/module/"
-    utility         "/usr/share/seamonkey/qtc8/library/"
+    apio            "/usr/share/kami/doofenshmirtz/apio/"
+    core            "/usr/share/kami/doofenshmirtz/core/"
+    pass            "/usr/share/kami/doofenshmirtz/passes/"
+    module          "/usr/share/kami/doofenshmirtz/module/"
+    utility         "/usr/share/kami/shego/library/"
 }
 
 #function {
@@ -107,7 +107,7 @@ directory {
         #print_line     [ #data " -verilog   enable verilog backend" ]
         #print_line
         #print_line     [ #data "contact:" ]
-        #print_line     [ #data "  #         github.com/ve5li/ktl9" ]
+        #print_line     [ #data "  #         github.com/ve5li/doofenshmirtz" ]
         #print_line     [ #data "  @         ve5li@tuta.io" ]
         #print_line
     ]
