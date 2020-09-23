@@ -131,7 +131,7 @@ directory {
         @ verilog user prompt
         #modify         [ #data #scope:testbench ] [ #data $false ]
         #if             [ #data #true ] [ #scope:configuration:verilog ]
-        #input          [ #data "create a verilog testbench? [y/N] " ]
+        #input          [ #data "[ option ] create a verilog testbench? [y/N] " ]
         #if             [ #data #equals ] [ #last ] [ #data "y" ]
         #modify         [ #data #scope:testbench ] [ #data $true ]
         #end
