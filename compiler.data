@@ -11,11 +11,11 @@ project {
 }
 
 directory {
-    apio            "/usr/share/kami/doofenshmirtz/apio/"
-    core            "/usr/share/kami/doofenshmirtz/core/"
-    pass            "/usr/share/kami/doofenshmirtz/passes/"
-    module          "/usr/share/kami/doofenshmirtz/module/"
-    utility         "/usr/share/kami/shego/library/"
+    apio            "/usr/share/tortoise/doofenshmirtz/apio/"
+    core            "/usr/share/tortoise/doofenshmirtz/core/"
+    pass            "/usr/share/tortoise/doofenshmirtz/passes/"
+    module          "/usr/share/tortoise/doofenshmirtz/module/"
+    utility         "/usr/share/tortoise/shego/library/"
 }
 
 #function {
